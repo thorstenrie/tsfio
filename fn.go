@@ -6,7 +6,16 @@ import (
 )
 
 var (
-	invalDir [8]Directory = [8]Directory{"", "/", "/boot", "/dev", "/lost+found", "/media", "/mnt", "/proc"}
+	invalDir [8]Directory = [8]Directory{
+		"",
+		"/",
+		"/boot",
+		"/dev",
+		"/lost+found",
+		"/media",
+		"/mnt",
+		"/proc",
+	}
 )
 
 type fio interface {
@@ -57,10 +66,6 @@ func checkInval[T fio](f T) error {
 	}
 	return nil
 }
-
-/*func Sprintf(format string, a ...any) Filename {
-	return Filename(fmt.Sprintf(format, a...))
-}*/
 
 func Sprintf[T fio](format string, a ...any) T {
 	return T(fmt.Sprintf(format, a...))
