@@ -7,31 +7,56 @@ import (
 	"github.com/thorstenrie/tslog"
 )
 
-func WriteFile(f *os.File, s string) {
-	_, err := f.WriteString(s)
-	if err != nil {
-		CloseFile(f)
-		tslog.E.Panic(fmt.Errorf("fatal error write file: %w", err))
+func WriteStr(f *os.File, s string) error {
+	if f == nil {
+		return fmt.Errorf("nil pointer")
 	}
+	if _, err := f.WriteString(s); err != nil {
+		f.Close()
+		return fmt.Errorf("write string to file %v failed: %w", f.Name(), err)
+	}
+	return nil
 }
 
-func AppendFile(fileAppend Filename, fileIn Filename) {
-	CheckFile(fileAppend)
-	CheckFile(fileIn)
+func AppendFile(fileAppend Filename, fileIn Filename) error {
+	if err := CheckFile(fileAppend); err != nil {
+		return errChk(fileAppend, err)
+	}
+	if err := CheckFile(fileIn); err != nil {
+		return errChk(fileIn, err)
+	}
 	f := OpenFile(fileAppend)
 	out := ReadFile(fileIn)
-	_, err := f.Write(out)
-	if err != nil {
-		tslog.E.Panic(fmt.Errorf("fatal error write to file: %w", err))
+	if _, err := f.Write(out); err != nil {
+		f.Close()
+		return fmt.Errorf("append file %v to file %v failed: %w", fileIn, f.Name(), err)
 	}
-	CloseFile(f)
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("close file %v failed: %w", f.Name(), err)
+	}
+	return nil
 }
 
-func WriteSingleStringToFile(filename Filename, s string) {
-	ResetFile(filename)
-	f := OpenFile(filename)
-	WriteFile(f, s)
-	CloseFile(f)
+func existsFile(fn Filename) (bool, error) {
+	if err := CheckFile(fn); err != nil {
+		return false, errChk(fn, err)
+	}
+	_, err := os.Stat(string(fn))
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, fmt.Errorf("FileInfo of file %v failed: %w", fn, err)
+}
+
+func WriteSingleStr(fn Filename, s string) error {
+	ResetFile(fn)
+	f := OpenFile(fn)
+	WriteStr(f, s)
+	f.Close()
+	return nil
 }
 
 func ReadFile(f Filename) []byte {
@@ -45,7 +70,7 @@ func ReadFile(f Filename) []byte {
 
 func RemoveFile(f Filename) {
 	CheckFile(f)
-	if existsFile(f) {
+	if b, _ := existsFile(f); b {
 		err := os.Remove(string(f))
 		if err != nil {
 			tslog.E.Panic(fmt.Errorf("fatal error with removing file %v: %w", f, err))
@@ -63,23 +88,8 @@ func CreateDir(d Directory) {
 	}
 }
 
-func existsFile(f Filename) bool {
-	CheckFile(f)
-	s, err := os.Stat(string(f))
-	if os.IsNotExist(err) {
-		return false
-	}
-	if err != nil {
-		tslog.E.Panic(fmt.Errorf("fatal error with FileInfo of file: %w", err))
-	}
-	if s.IsDir() {
-		tslog.E.Panic(fmt.Errorf("fatal error with file %v: is s directory", f))
-	}
-	return true
-}
-
 func ResetFile(f Filename) {
-	if !existsFile(f) {
+	if b, _ := existsFile(f); b {
 		touchFile(f)
 	}
 	err := os.Truncate(string(f), 0)
@@ -90,15 +100,15 @@ func ResetFile(f Filename) {
 
 func touchFile(f Filename) {
 	CheckFile(f)
-	CloseFile(OpenFile(f))
+	(OpenFile(f)).Close()
 }
 
-func CloseFile(f *os.File) {
+/*func CloseFile(f *os.File) {
 	err := f.Close()
 	if err != nil {
 		tslog.E.Panic(fmt.Errorf("fatal error closing file: %w", err))
 	}
-}
+}*/
 
 func OpenFile(filename Filename) *os.File {
 	CheckFile(filename)

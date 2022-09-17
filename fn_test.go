@@ -47,10 +47,25 @@ func TestDir2(t *testing.T) {
 	}
 }
 
+func TestFile2(t *testing.T) {
+	f := tmpFile(t)
+	rm(t, f)
+	if CheckFile(f) != nil {
+		t.Errorf("File check %v returned error, but error expected to be nil", f)
+	}
+}
+
 func TestDir3(t *testing.T) {
 	f := tmpFile(t)
 	if CheckDir(Directory(f)) == nil {
 		t.Errorf("Directory check %v returned nil, but error expected", f)
+	}
+}
+
+func TestFile3(t *testing.T) {
+	d := tmpDir(t)
+	if CheckFile(Filename(d)) == nil {
+		t.Errorf("File check %v returned nil, but error expected", d)
 	}
 }
 

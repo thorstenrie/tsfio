@@ -39,11 +39,11 @@ func checkWrapper[T fio](f T, dir bool) error {
 		return err
 	}
 	i, err := os.Stat(string(f))
+	w := "file"
+	if dir {
+		w = "directory"
+	}
 	if err == nil {
-		w := "file"
-		if dir {
-			w = "directory"
-		}
 		if i.IsDir() == dir {
 			return nil
 		} else {
@@ -53,7 +53,7 @@ func checkWrapper[T fio](f T, dir bool) error {
 		if os.IsNotExist(err) {
 			return nil
 		} else {
-			return err
+			return fmt.Errorf("%v check of %v failed: %w", w, f, err)
 		}
 	}
 }
@@ -69,4 +69,8 @@ func checkInval[T fio](f T) error {
 
 func Sprintf[T fio](format string, a ...any) T {
 	return T(fmt.Sprintf(format, a...))
+}
+
+func errChk[T fio](f T, err error) error {
+	return fmt.Errorf("check %v failed: %w", f, err)
 }
