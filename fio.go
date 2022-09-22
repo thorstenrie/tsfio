@@ -2,41 +2,65 @@ package tsfio
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
-
-	"github.com/thorstenrie/tslog"
 )
 
-func WriteStr(f *os.File, s string) error {
-	if f == nil {
+const (
+	flags int         = os.O_APPEND | os.O_CREATE | os.O_WRONLY
+	fperm fs.FileMode = 0644
+	dperm fs.FileMode = 0755
+)
+
+// done
+func WriteStr(fn Filename, s string) error {
+	f, err := OpenFile(fn)
+	if err != nil {
+		return errFio("open", fn, err)
+	}
+	if _, e := f.WriteString(s); e != nil {
+		f.Close()
+		return errFio("write string to", fn, e)
+	}
+	return nil
+}
+
+type Append struct {
+	fileAppend Filename
+	fileIn     Filename
+}
+
+// done
+func AppendFile(a *Append) error {
+	if a == nil {
 		return fmt.Errorf("nil pointer")
 	}
-	if _, err := f.WriteString(s); err != nil {
+
+	if e := CheckFile(a.fileAppend); e != nil {
+		return errChk(a.fileAppend, e)
+	}
+	if e := CheckFile(a.fileIn); e != nil {
+		return errChk(a.fileIn, e)
+	}
+	f, erro := OpenFile(a.fileAppend)
+	if erro != nil {
+		return errFio("open", a.fileAppend, erro)
+	}
+	out, errr := ReadFile(a.fileIn)
+	if errr != nil {
+		return errFio("read", a.fileIn, errr)
+	}
+	if _, e := f.Write(out); e != nil {
 		f.Close()
-		return fmt.Errorf("write string to file %v failed: %w", f.Name(), err)
+		return errFio(fmt.Sprintf("append file %v to", a.fileIn), a.fileAppend, e)
+	}
+	if e := f.Close(); e != nil {
+		return errFio("close", a.fileAppend, e)
 	}
 	return nil
 }
 
-func AppendFile(fileAppend Filename, fileIn Filename) error {
-	if err := CheckFile(fileAppend); err != nil {
-		return errChk(fileAppend, err)
-	}
-	if err := CheckFile(fileIn); err != nil {
-		return errChk(fileIn, err)
-	}
-	f := OpenFile(fileAppend)
-	out := ReadFile(fileIn)
-	if _, err := f.Write(out); err != nil {
-		f.Close()
-		return fmt.Errorf("append file %v to file %v failed: %w", fileIn, f.Name(), err)
-	}
-	if err := f.Close(); err != nil {
-		return fmt.Errorf("close file %v failed: %w", f.Name(), err)
-	}
-	return nil
-}
-
+// done
 func existsFile(fn Filename) (bool, error) {
 	if err := CheckFile(fn); err != nil {
 		return false, errChk(fn, err)
@@ -48,73 +72,108 @@ func existsFile(fn Filename) (bool, error) {
 	if os.IsNotExist(err) {
 		return false, nil
 	}
-	return false, fmt.Errorf("FileInfo of file %v failed: %w", fn, err)
+	return false, errFio("FileInfo of", fn, err)
 }
 
+// done
 func WriteSingleStr(fn Filename, s string) error {
-	ResetFile(fn)
-	f := OpenFile(fn)
-	WriteStr(f, s)
-	f.Close()
+	if e := ResetFile(fn); e != nil {
+		return errFio("reset", fn, e)
+	}
+	if e := WriteStr(fn, s); e != nil {
+		return errFio(fmt.Sprintf("write string %v to", s), fn, e)
+	}
 	return nil
 }
 
-func ReadFile(f Filename) []byte {
-	CheckFile(f)
+// done
+func ReadFile(f Filename) ([]byte, error) {
+	if e := CheckFile(f); e != nil {
+		return nil, errChk(f, e)
+	}
 	b, err := os.ReadFile(string(f))
 	if err != nil {
-		tslog.E.Panic(fmt.Errorf("fatal error read file: %w", err))
+		return nil, errFio("read", f, err)
 	}
-	return b
+	return b, nil
 }
 
-func RemoveFile(f Filename) {
-	CheckFile(f)
-	if b, _ := existsFile(f); b {
-		err := os.Remove(string(f))
-		if err != nil {
-			tslog.E.Panic(fmt.Errorf("fatal error with removing file %v: %w", f, err))
+// done
+func RemoveFile(f Filename) error {
+	if e := CheckFile(f); e != nil {
+		return errChk(f, e)
+	}
+
+	b, err := existsFile(f)
+	if err != nil {
+		return errFio("check if exists", f, err)
+	}
+
+	if b {
+		e := os.Remove(string(f))
+		if e != nil {
+			return errFio("remove", f, err)
 		}
 	} else {
-		tslog.E.Panic(fmt.Errorf("fatal error removing file %v: does not exist", f))
+		return fmt.Errorf("remove file %v failed, because it does not exist", f)
 	}
+
+	return nil
 }
 
-func CreateDir(d Directory) {
-	CheckDir(d)
-	err := os.MkdirAll(string(d), 0755)
-	if err != nil {
-		tslog.E.Panic(fmt.Errorf("fatal error with creating dir: %w", err))
+// done
+func CreateDir(d Directory) error {
+	if e := CheckDir(d); e != nil {
+		return errChk(d, e)
 	}
+	err := os.MkdirAll(string(d), dperm)
+	if err != nil {
+		return errDir("make", d, err)
+	}
+	return nil
 }
 
-func ResetFile(f Filename) {
-	if b, _ := existsFile(f); b {
-		touchFile(f)
-	}
-	err := os.Truncate(string(f), 0)
+// done
+func ResetFile(f Filename) error {
+	b, err := existsFile(f)
 	if err != nil {
-		tslog.E.Panic(fmt.Errorf("fatal error truncate file: %w", err))
+		return errFio("check if exists", f, err)
 	}
+	if b {
+		if e := touchFile(f); e != nil {
+			return errFio("touch", f, e)
+		}
+	}
+	err = os.Truncate(string(f), 0)
+	if err != nil {
+		return errFio("truncate", f, err)
+	}
+	return nil
 }
 
-func touchFile(f Filename) {
-	CheckFile(f)
-	(OpenFile(f)).Close()
+// done
+func touchFile(fn Filename) error {
+	if e := CheckFile(fn); e != nil {
+		return errChk(fn, e)
+	}
+	f, err := OpenFile(fn)
+	if err != nil {
+		return errFio("open", fn, err)
+	}
+	if e := f.Close(); e != nil {
+		return errFio("close", fn, e)
+	}
+	return nil
 }
 
-/*func CloseFile(f *os.File) {
-	err := f.Close()
-	if err != nil {
-		tslog.E.Panic(fmt.Errorf("fatal error closing file: %w", err))
+// done
+func OpenFile(fn Filename) (*os.File, error) {
+	if e := CheckFile(fn); e != nil {
+		return nil, errChk(fn, e)
 	}
-}*/
-
-func OpenFile(filename Filename) *os.File {
-	CheckFile(filename)
-	f, err := os.OpenFile(string(filename), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(string(fn), flags, fperm)
 	if err != nil {
-		tslog.E.Panic(fmt.Errorf("fatal error open file: %w", err))
+		return nil, errFio("open", fn, err)
 	}
-	return f
+	return f, nil
 }
