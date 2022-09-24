@@ -1,6 +1,7 @@
 package tsfio
 
 import (
+	"fmt"
 	"os"
 	"testing"
 )
@@ -76,6 +77,30 @@ func TestSprintf(t *testing.T) {
 	f := Sprintf[Filename]("%v%v%v", os.TempDir(), string(os.PathSeparator), a)
 	if (Directory(swant) != d) || (Filename(swant) != f) {
 		t.Errorf("string(%v), Directory(%v), Filename(%v) not identical, but expected to be identical", swant, d, f)
+	}
+}
+
+func TestErrChkNil(t *testing.T) {
+	if errChk(Filename("test"), nil) != nil {
+		t.Errorf("errChk returned error, but error expected to be nil")
+	}
+}
+
+func TestErrChk(t *testing.T) {
+	if errChk(Filename("test"), fmt.Errorf("test")) == nil {
+		t.Errorf("errChk returned nil, but error expected")
+	}
+}
+
+func TestErrFioNil(t *testing.T) {
+	if errFio("test", Filename("test"), nil) != nil {
+		t.Errorf("errFio returned error, but error expected to be nil")
+	}
+}
+
+func TestErrFio(t *testing.T) {
+	if errFio("test", Filename("test"), fmt.Errorf("test")) == nil {
+		t.Errorf("errFio returned nil, but error expected")
 	}
 }
 

@@ -128,7 +128,7 @@ func CreateDir(d Directory) error {
 	}
 	err := os.MkdirAll(string(d), dperm)
 	if err != nil {
-		return errDir("make", d, err)
+		return errFio("make", d, err)
 	}
 	return nil
 }

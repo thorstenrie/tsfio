@@ -5,19 +5,6 @@ import (
 	"os"
 )
 
-var (
-	invalDir [8]Directory = [8]Directory{
-		"",
-		"/",
-		"/boot",
-		"/dev",
-		"/lost+found",
-		"/media",
-		"/mnt",
-		"/proc",
-	}
-)
-
 type fio interface {
 	Filename | Directory
 }
@@ -71,17 +58,16 @@ func Sprintf[T fio](format string, a ...any) T {
 	return T(fmt.Sprintf(format, a...))
 }
 
-// Todo write test
 func errChk[T fio](f T, err error) error {
+	if err == nil {
+		return nil
+	}
 	return fmt.Errorf("check %v failed: %w", f, err)
 }
 
-// Todo write test
-func errFio(op string, f Filename, err error) error {
-	return fmt.Errorf("%v file %v failed: %w", op, f, err)
-}
-
-// Todo write test
-func errDir(op string, d Directory, err error) error {
-	return fmt.Errorf("%v dir %v failed: %w", op, d, err)
+func errFio[T fio](op string, f T, err error) error {
+	if err == nil {
+		return nil
+	}
+	return fmt.Errorf("%v %v failed: %w", op, f, err)
 }
