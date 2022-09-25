@@ -6,12 +6,8 @@ import (
 	"testing"
 )
 
-var (
-	testDir [8]Directory = invalDir
-)
-
 func TestInvalDir(t *testing.T) {
-	for _, d := range testDir {
+	for _, d := range invalDir {
 		if CheckDir(d) == nil {
 			t.Errorf("%v should be an invalid dir", d)
 		}
@@ -19,7 +15,7 @@ func TestInvalDir(t *testing.T) {
 }
 
 func TestInvalFile(t *testing.T) {
-	for _, d := range testDir {
+	for _, d := range invalDir {
 		if CheckFile(Filename(d)) == nil {
 			t.Errorf("%v should be an invalid file", d)
 		}
@@ -81,47 +77,25 @@ func TestSprintf(t *testing.T) {
 }
 
 func TestErrChkNil(t *testing.T) {
-	if errChk(Filename("test"), nil) != nil {
+	if errChk(Filename(testcase), nil) != nil {
 		t.Errorf("errChk returned error, but error expected to be nil")
 	}
 }
 
 func TestErrChk(t *testing.T) {
-	if errChk(Filename("test"), fmt.Errorf("test")) == nil {
+	if errChk(Filename(testcase), fmt.Errorf("test")) == nil {
 		t.Errorf("errChk returned nil, but error expected")
 	}
 }
 
 func TestErrFioNil(t *testing.T) {
-	if errFio("test", Filename("test"), nil) != nil {
+	if errFio(testcase, Filename(testcase), nil) != nil {
 		t.Errorf("errFio returned error, but error expected to be nil")
 	}
 }
 
 func TestErrFio(t *testing.T) {
-	if errFio("test", Filename("test"), fmt.Errorf("test")) == nil {
+	if errFio(testcase, Filename(testcase), fmt.Errorf(testcase)) == nil {
 		t.Errorf("errFio returned nil, but error expected")
-	}
-}
-
-func tmpDir(t *testing.T) Directory {
-	d, err := os.MkdirTemp("", "tsfio_*")
-	if err != nil {
-		t.Fatalf("could not create temp dir %v: %v", d, err)
-	}
-	return Directory(d)
-}
-
-func tmpFile(t *testing.T) Filename {
-	f, err := os.CreateTemp("", "tsfio_*")
-	if err != nil {
-		t.Fatalf("could not create temp file %v: %v", f.Name(), err)
-	}
-	return Filename(f.Name())
-}
-
-func rm[T fio](t *testing.T, a T) {
-	if err := os.Remove(string(a)); err != nil {
-		t.Fatalf("could not remove %v: %v", a, err)
 	}
 }

@@ -26,8 +26,8 @@ func WriteStr(fn Filename, s string) error {
 }
 
 type Append struct {
-	fileAppend Filename
-	fileIn     Filename
+	fileA Filename
+	fileI Filename
 }
 
 // done
@@ -36,26 +36,26 @@ func AppendFile(a *Append) error {
 		return fmt.Errorf("nil pointer")
 	}
 
-	if e := CheckFile(a.fileAppend); e != nil {
-		return errChk(a.fileAppend, e)
+	if e := CheckFile(a.fileA); e != nil {
+		return errChk(a.fileA, e)
 	}
-	if e := CheckFile(a.fileIn); e != nil {
-		return errChk(a.fileIn, e)
+	if e := CheckFile(a.fileI); e != nil {
+		return errChk(a.fileI, e)
 	}
-	f, erro := OpenFile(a.fileAppend)
+	f, erro := OpenFile(a.fileA)
 	if erro != nil {
-		return errFio("open", a.fileAppend, erro)
+		return errFio("open", a.fileA, erro)
 	}
-	out, errr := ReadFile(a.fileIn)
+	out, errr := ReadFile(a.fileI)
 	if errr != nil {
-		return errFio("read", a.fileIn, errr)
+		return errFio("read", a.fileI, errr)
 	}
 	if _, e := f.Write(out); e != nil {
 		f.Close()
-		return errFio(fmt.Sprintf("append file %v to", a.fileIn), a.fileAppend, e)
+		return errFio(fmt.Sprintf("append file %v to", a.fileI), a.fileA, e)
 	}
 	if e := f.Close(); e != nil {
-		return errFio("close", a.fileAppend, e)
+		return errFio("close", a.fileA, e)
 	}
 	return nil
 }
@@ -140,7 +140,7 @@ func ResetFile(f Filename) error {
 		return errFio("check if exists", f, err)
 	}
 	if b {
-		if e := touchFile(f); e != nil {
+		if e := TouchFile(f); e != nil {
 			return errFio("touch", f, e)
 		}
 	}
@@ -152,7 +152,7 @@ func ResetFile(f Filename) error {
 }
 
 // done
-func touchFile(fn Filename) error {
+func TouchFile(fn Filename) error {
 	if e := CheckFile(fn); e != nil {
 		return errChk(fn, e)
 	}

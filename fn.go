@@ -3,6 +3,7 @@ package tsfio
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 type fio interface {
@@ -47,7 +48,7 @@ func checkWrapper[T fio](f T, dir bool) error {
 
 func checkInval[T fio](f T) error {
 	for _, i := range invalDir {
-		if string(i) == string(f) {
+		if filepath.Clean(string(i)) == filepath.Clean(string(f)) {
 			return fmt.Errorf("%v not allowed", f)
 		}
 	}
