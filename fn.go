@@ -23,6 +23,9 @@ func CheckDir(d Directory) error {
 }
 
 func checkWrapper[T fio](f T, dir bool) error {
+	if f == "" {
+		return fmt.Errorf("file or directory name cannot be empty")
+	}
 	if err := checkInval(f); err != nil {
 		return err
 	}

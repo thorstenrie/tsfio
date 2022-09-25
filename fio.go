@@ -12,7 +12,6 @@ const (
 	dperm fs.FileMode = 0755
 )
 
-// done
 func WriteStr(fn Filename, s string) error {
 	f, err := OpenFile(fn)
 	if err != nil {
@@ -30,7 +29,6 @@ type Append struct {
 	fileI Filename
 }
 
-// done
 func AppendFile(a *Append) error {
 	if a == nil {
 		return fmt.Errorf("nil pointer")
@@ -60,8 +58,7 @@ func AppendFile(a *Append) error {
 	return nil
 }
 
-// done
-func existsFile(fn Filename) (bool, error) {
+func ExistsFile(fn Filename) (bool, error) {
 	if err := CheckFile(fn); err != nil {
 		return false, errChk(fn, err)
 	}
@@ -104,7 +101,7 @@ func RemoveFile(f Filename) error {
 		return errChk(f, e)
 	}
 
-	b, err := existsFile(f)
+	b, err := ExistsFile(f)
 	if err != nil {
 		return errFio("check if exists", f, err)
 	}
@@ -135,7 +132,7 @@ func CreateDir(d Directory) error {
 
 // done
 func ResetFile(f Filename) error {
-	b, err := existsFile(f)
+	b, err := ExistsFile(f)
 	if err != nil {
 		return errFio("check if exists", f, err)
 	}

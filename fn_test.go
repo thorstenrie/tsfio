@@ -22,6 +22,18 @@ func TestInvalFile(t *testing.T) {
 	}
 }
 
+func TestEmptyDir(t *testing.T) {
+	if err := CheckDir(""); err == nil {
+		t.Errorf("Directory check returned nil, but error expected for empty directory name")
+	}
+}
+
+func TestEmptyFile(t *testing.T) {
+	if err := CheckFile(""); err == nil {
+		t.Errorf("File check returned nil, but error expected for empty file name")
+	}
+}
+
 func TestDir1(t *testing.T) {
 	d := tmpDir(t)
 	if err := CheckDir(d); err != nil {

@@ -3,8 +3,7 @@
 package tsfio
 
 var (
-	invalDir [8]Directory = [8]Directory{
-		"",
+	invalDir [7]Directory = [7]Directory{
 		"/",
 		"/boot",
 		"/dev",
