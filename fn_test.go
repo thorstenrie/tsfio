@@ -6,17 +6,18 @@ import (
 	"testing"
 )
 
-func TestInvalDir(t *testing.T) {
+func TestBlockedDir(t *testing.T) {
 	for _, d := range invalDir {
-		if CheckDir(d) == nil {
+		p := Filename(d) + Filename(os.PathSeparator) + testfile
+		if CheckFile(p) == nil {
 			t.Errorf("%v should be an invalid dir", d)
 		}
 	}
 }
 
 func TestInvalFile(t *testing.T) {
-	for _, d := range invalDir {
-		if CheckFile(Filename(d)) == nil {
+	for _, d := range invalFile {
+		if CheckFile(d) == nil {
 			t.Errorf("%v should be an invalid file", d)
 		}
 	}

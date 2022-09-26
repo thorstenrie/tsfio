@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	testcase string = "test"
+	testcase string   = "test"
+	testfile Filename = "test"
 )
 
 func tmpDir(t *testing.T) Directory {

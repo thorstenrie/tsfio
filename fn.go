@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type fio interface {
@@ -50,9 +51,17 @@ func checkWrapper[T fio](f T, dir bool) error {
 }
 
 func checkInval[T fio](f T) error {
+	fc := filepath.Clean(string(f))
+	for _, i := range invalFile {
+		ic := filepath.Clean(string(i))
+		if ic == fc {
+			return fmt.Errorf("file operation on %v not allowed", f)
+		}
+	}
 	for _, i := range invalDir {
-		if filepath.Clean(string(i)) == filepath.Clean(string(f)) {
-			return fmt.Errorf("%v not allowed", f)
+		ic := filepath.Clean(string(i))
+		if strings.HasPrefix(fc, ic) {
+			return fmt.Errorf("directory %v in %v blocked by default", i, f)
 		}
 	}
 	return nil
