@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"time"
 )
 
 const (
@@ -148,22 +149,31 @@ func ResetFile(f Filename) error {
 	return nil
 }
 
-// done
 func TouchFile(fn Filename) error {
 	if e := CheckFile(fn); e != nil {
 		return errChk(fn, e)
 	}
-	f, err := OpenFile(fn)
-	if err != nil {
-		return errFio("open", fn, err)
+	b, erre := ExistsFile(fn)
+	if erre != nil {
+		return errFio("check if exists", fn, erre)
 	}
-	if e := f.Close(); e != nil {
-		return errFio("close", fn, e)
+	if b {
+		t := time.Now().Local()
+		if e := os.Chtimes(string(fn), t, t); e != nil {
+			return errFio("chtimes", fn, e)
+		}
+	} else {
+		f, erro := OpenFile(fn)
+		if erro != nil {
+			return errFio("open", fn, erro)
+		}
+		if e := f.Close(); e != nil {
+			return errFio("close", fn, e)
+		}
 	}
 	return nil
 }
 
-// done
 func OpenFile(fn Filename) (*os.File, error) {
 	if e := CheckFile(fn); e != nil {
 		return nil, errChk(fn, e)
