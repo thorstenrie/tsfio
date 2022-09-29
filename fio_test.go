@@ -3,6 +3,8 @@ package tsfio
 import (
 	"os"
 	"testing"
+
+	"github.com/thorstenrie/tserr"
 )
 
 func TestWriteStr(t *testing.T) {
@@ -48,21 +50,20 @@ func TestOpenFileRm(t *testing.T) {
 }
 
 func TestOpenFileEmpty(t *testing.T) {
-	_, err := OpenFile("")
-	if err == nil {
-		t.Errorf("OpenFile returned nil, but error expected")
+	if _, err := OpenFile(""); err == nil {
+		t.Error(tserr.NilFailed("OpenFile"))
 	}
 }
 
 func TestTouchFileEmpty(t *testing.T) {
 	if e := TouchFile(""); e == nil {
-		t.Errorf("TouchFile returned nil, but error expected")
+		t.Error(tserr.NilFailed("TouchFile"))
 	}
 }
 
 func TestWriteStrErr(t *testing.T) {
 	if e := WriteStr("", testcase); e == nil {
-		t.Error(testErrNil("WriteStr"))
+		t.Error(tserr.NilFailed("WriteStr"))
 	}
 }
 

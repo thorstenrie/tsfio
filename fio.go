@@ -5,6 +5,8 @@ import (
 	"io/fs"
 	"os"
 	"time"
+
+	"github.com/thorstenrie/tserr"
 )
 
 const (
@@ -16,11 +18,11 @@ const (
 func WriteStr(fn Filename, s string) error {
 	f, err := OpenFile(fn)
 	if err != nil {
-		return errOp("open", string(fn), err)
+		return tserr.Op(&tserr.OpArgs{Op: "open", Fn: string(fn)}, err)
 	}
 	if _, e := f.WriteString(s); e != nil {
 		f.Close()
-		return errOp("write string to", string(fn), e)
+		return tserr.Op(&tserr.OpArgs{Op: "write string to", Fn: string(fn)}, e)
 	}
 	return nil
 }
@@ -36,32 +38,32 @@ func AppendFile(a *Append) error {
 	}
 
 	if e := CheckFile(a.fileA); e != nil {
-		return errChk(string(a.fileA), e)
+		return tserr.Check(string(a.fileA), e)
 	}
 	if e := CheckFile(a.fileI); e != nil {
-		return errChk(string(a.fileI), e)
+		return tserr.Check(string(a.fileI), e)
 	}
 	f, erro := OpenFile(a.fileA)
 	if erro != nil {
-		return errOp("open", string(a.fileA), erro)
+		return tserr.Op(&tserr.OpArgs{Op: "open", Fn: string(a.fileA)}, erro)
 	}
 	out, errr := ReadFile(a.fileI)
 	if errr != nil {
-		return errOp("read", string(a.fileI), errr)
+		return tserr.Op(&tserr.OpArgs{Op: "read", Fn: string(a.fileI)}, errr)
 	}
 	if _, e := f.Write(out); e != nil {
 		f.Close()
-		return errOp(fmt.Sprintf("append file %v to", a.fileI), string(a.fileA), e)
+		return tserr.Op(&tserr.OpArgs{Op: fmt.Sprintf("append file %v to", a.fileI), Fn: string(a.fileA)}, e)
 	}
 	if e := f.Close(); e != nil {
-		return errOp("close", string(a.fileA), e)
+		return tserr.Op(&tserr.OpArgs{Op: "close", Fn: string(a.fileA)}, e)
 	}
 	return nil
 }
 
 func ExistsFile(fn Filename) (bool, error) {
 	if err := CheckFile(fn); err != nil {
-		return false, errChk(string(fn), err)
+		return false, tserr.Check(string(fn), err)
 	}
 	_, err := os.Stat(string(fn))
 	if err == nil {
@@ -70,105 +72,100 @@ func ExistsFile(fn Filename) (bool, error) {
 	if os.IsNotExist(err) {
 		return false, nil
 	}
-	return false, errOp("FileInfo of", string(fn), err)
+	return false, tserr.Op(&tserr.OpArgs{Op: "FileInfo of", Fn: string(fn)}, err)
 }
 
-// done
 func WriteSingleStr(fn Filename, s string) error {
 	if e := ResetFile(fn); e != nil {
-		return errOp("reset", string(fn), e)
+		return tserr.Op(&tserr.OpArgs{Op: "reset", Fn: string(fn)}, e)
 	}
 	if e := WriteStr(fn, s); e != nil {
-		return errOp(fmt.Sprintf("write string %v to", s), string(fn), e)
+		return tserr.Op(&tserr.OpArgs{Op: fmt.Sprintf("write string %v to", s), Fn: string(fn)}, e)
 	}
 	return nil
 }
 
-// done
 func ReadFile(f Filename) ([]byte, error) {
 	if e := CheckFile(f); e != nil {
-		return nil, errChk(string(f), e)
+		return nil, tserr.Check(string(f), e)
 	}
 	b, err := os.ReadFile(string(f))
 	if err != nil {
-		return nil, errOp("read", string(f), err)
+		return nil, tserr.Op(&tserr.OpArgs{Op: "read", Fn: string(f)}, err)
 	}
 	return b, nil
 }
 
-// done
 func RemoveFile(f Filename) error {
 	if e := CheckFile(f); e != nil {
-		return errChk(string(f), e)
+		return tserr.Check(string(f), e)
 	}
 
 	b, err := ExistsFile(f)
 	if err != nil {
-		return errOp("check if exists", string(f), err)
+		return tserr.Op(&tserr.OpArgs{Op: "check if exists", Fn: string(f)}, err)
 	}
 
 	if b {
 		e := os.Remove(string(f))
 		if e != nil {
-			return errOp("remove", string(f), err)
+			return tserr.Op(&tserr.OpArgs{Op: "remove", Fn: string(f)}, err)
 		}
 	} else {
-		return fmt.Errorf("remove file %v failed, because it does not exist", f)
+		return tserr.NotExistent(string(f))
 	}
 
 	return nil
 }
 
-// done
 func CreateDir(d Directory) error {
 	if e := CheckDir(d); e != nil {
-		return errChk(string(d), e)
+		return tserr.Check(string(d), e)
 	}
 	err := os.MkdirAll(string(d), dperm)
 	if err != nil {
-		return errOp("make", string(d), err)
+		return tserr.Op(&tserr.OpArgs{Op: "make", Fn: string(d)}, err)
 	}
 	return nil
 }
 
-// done
 func ResetFile(f Filename) error {
 	b, err := ExistsFile(f)
 	if err != nil {
-		return errOp("check if exists", string(f), err)
+		return tserr.Op(&tserr.OpArgs{Op: "check if exists", Fn: string(f)}, err)
 	}
 	if b {
 		if e := TouchFile(f); e != nil {
-			return errOp("touch", string(f), e)
+			return tserr.Op(&tserr.OpArgs{Op: "touch", Fn: string(f)}, e)
 		}
 	}
 	err = os.Truncate(string(f), 0)
 	if err != nil {
-		return errOp("truncate", string(f), err)
+		return tserr.Op(&tserr.OpArgs{Op: "truncate", Fn: string(f)}, err)
 	}
 	return nil
 }
 
 func TouchFile(fn Filename) error {
 	if e := CheckFile(fn); e != nil {
-		return errChk(string(fn), e)
+		return tserr.Check(string(fn), e)
 	}
 	b, erre := ExistsFile(fn)
 	if erre != nil {
-		return errOp("check if exists", string(fn), erre)
+		return tserr.Op(&tserr.OpArgs{Op: "check if exists", Fn: string(fn)}, erre)
 	}
 	if b {
 		t := time.Now().Local()
 		if e := os.Chtimes(string(fn), t, t); e != nil {
-			return errOp("chtimes", string(fn), e)
+			return tserr.Op(&tserr.OpArgs{Op: "chtimes", Fn: string(fn)}, e)
 		}
 	} else {
 		f, erro := OpenFile(fn)
 		if erro != nil {
-			return errOp("open", string(fn), erro)
+			return tserr.Op(&tserr.OpArgs{Op: "open", Fn: string(fn)}, erro)
 		}
 		if e := f.Close(); e != nil {
-			return errOp("close", string(fn), e)
+			return tserr.Op(&tserr.OpArgs{Op: "close", Fn: string(fn)}, e)
 		}
 	}
 	return nil
@@ -176,11 +173,11 @@ func TouchFile(fn Filename) error {
 
 func OpenFile(fn Filename) (*os.File, error) {
 	if e := CheckFile(fn); e != nil {
-		return nil, errChk(string(fn), e)
+		return nil, tserr.Check(string(fn), e)
 	}
 	f, err := os.OpenFile(string(fn), flags, fperm)
 	if err != nil {
-		return nil, errOp("open", string(fn), err)
+		return nil, tserr.Op(&tserr.OpArgs{Op: "open", Fn: string(fn)}, err)
 	}
 	return f, nil
 }
