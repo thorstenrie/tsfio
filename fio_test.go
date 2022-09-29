@@ -54,9 +54,15 @@ func TestOpenFileEmpty(t *testing.T) {
 	}
 }
 
+func TestTouchFileEmpty(t *testing.T) {
+	if e := TouchFile(""); e == nil {
+		t.Errorf("TouchFile returned nil, but error expected")
+	}
+}
+
 func TestWriteStrErr(t *testing.T) {
 	if e := WriteStr("", testcase); e == nil {
-		t.Errorf("WriteStr returned nil, but error expected")
+		t.Error(testErrNil("WriteStr"))
 	}
 }
 

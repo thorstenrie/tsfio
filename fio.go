@@ -16,11 +16,11 @@ const (
 func WriteStr(fn Filename, s string) error {
 	f, err := OpenFile(fn)
 	if err != nil {
-		return errFio("open", fn, err)
+		return errOp("open", string(fn), err)
 	}
 	if _, e := f.WriteString(s); e != nil {
 		f.Close()
-		return errFio("write string to", fn, e)
+		return errOp("write string to", string(fn), e)
 	}
 	return nil
 }
@@ -36,32 +36,32 @@ func AppendFile(a *Append) error {
 	}
 
 	if e := CheckFile(a.fileA); e != nil {
-		return errChk(a.fileA, e)
+		return errChk(string(a.fileA), e)
 	}
 	if e := CheckFile(a.fileI); e != nil {
-		return errChk(a.fileI, e)
+		return errChk(string(a.fileI), e)
 	}
 	f, erro := OpenFile(a.fileA)
 	if erro != nil {
-		return errFio("open", a.fileA, erro)
+		return errOp("open", string(a.fileA), erro)
 	}
 	out, errr := ReadFile(a.fileI)
 	if errr != nil {
-		return errFio("read", a.fileI, errr)
+		return errOp("read", string(a.fileI), errr)
 	}
 	if _, e := f.Write(out); e != nil {
 		f.Close()
-		return errFio(fmt.Sprintf("append file %v to", a.fileI), a.fileA, e)
+		return errOp(fmt.Sprintf("append file %v to", a.fileI), string(a.fileA), e)
 	}
 	if e := f.Close(); e != nil {
-		return errFio("close", a.fileA, e)
+		return errOp("close", string(a.fileA), e)
 	}
 	return nil
 }
 
 func ExistsFile(fn Filename) (bool, error) {
 	if err := CheckFile(fn); err != nil {
-		return false, errChk(fn, err)
+		return false, errChk(string(fn), err)
 	}
 	_, err := os.Stat(string(fn))
 	if err == nil {
@@ -70,16 +70,16 @@ func ExistsFile(fn Filename) (bool, error) {
 	if os.IsNotExist(err) {
 		return false, nil
 	}
-	return false, errFio("FileInfo of", fn, err)
+	return false, errOp("FileInfo of", string(fn), err)
 }
 
 // done
 func WriteSingleStr(fn Filename, s string) error {
 	if e := ResetFile(fn); e != nil {
-		return errFio("reset", fn, e)
+		return errOp("reset", string(fn), e)
 	}
 	if e := WriteStr(fn, s); e != nil {
-		return errFio(fmt.Sprintf("write string %v to", s), fn, e)
+		return errOp(fmt.Sprintf("write string %v to", s), string(fn), e)
 	}
 	return nil
 }
@@ -87,11 +87,11 @@ func WriteSingleStr(fn Filename, s string) error {
 // done
 func ReadFile(f Filename) ([]byte, error) {
 	if e := CheckFile(f); e != nil {
-		return nil, errChk(f, e)
+		return nil, errChk(string(f), e)
 	}
 	b, err := os.ReadFile(string(f))
 	if err != nil {
-		return nil, errFio("read", f, err)
+		return nil, errOp("read", string(f), err)
 	}
 	return b, nil
 }
@@ -99,18 +99,18 @@ func ReadFile(f Filename) ([]byte, error) {
 // done
 func RemoveFile(f Filename) error {
 	if e := CheckFile(f); e != nil {
-		return errChk(f, e)
+		return errChk(string(f), e)
 	}
 
 	b, err := ExistsFile(f)
 	if err != nil {
-		return errFio("check if exists", f, err)
+		return errOp("check if exists", string(f), err)
 	}
 
 	if b {
 		e := os.Remove(string(f))
 		if e != nil {
-			return errFio("remove", f, err)
+			return errOp("remove", string(f), err)
 		}
 	} else {
 		return fmt.Errorf("remove file %v failed, because it does not exist", f)
@@ -122,11 +122,11 @@ func RemoveFile(f Filename) error {
 // done
 func CreateDir(d Directory) error {
 	if e := CheckDir(d); e != nil {
-		return errChk(d, e)
+		return errChk(string(d), e)
 	}
 	err := os.MkdirAll(string(d), dperm)
 	if err != nil {
-		return errFio("make", d, err)
+		return errOp("make", string(d), err)
 	}
 	return nil
 }
@@ -135,40 +135,40 @@ func CreateDir(d Directory) error {
 func ResetFile(f Filename) error {
 	b, err := ExistsFile(f)
 	if err != nil {
-		return errFio("check if exists", f, err)
+		return errOp("check if exists", string(f), err)
 	}
 	if b {
 		if e := TouchFile(f); e != nil {
-			return errFio("touch", f, e)
+			return errOp("touch", string(f), e)
 		}
 	}
 	err = os.Truncate(string(f), 0)
 	if err != nil {
-		return errFio("truncate", f, err)
+		return errOp("truncate", string(f), err)
 	}
 	return nil
 }
 
 func TouchFile(fn Filename) error {
 	if e := CheckFile(fn); e != nil {
-		return errChk(fn, e)
+		return errChk(string(fn), e)
 	}
 	b, erre := ExistsFile(fn)
 	if erre != nil {
-		return errFio("check if exists", fn, erre)
+		return errOp("check if exists", string(fn), erre)
 	}
 	if b {
 		t := time.Now().Local()
 		if e := os.Chtimes(string(fn), t, t); e != nil {
-			return errFio("chtimes", fn, e)
+			return errOp("chtimes", string(fn), e)
 		}
 	} else {
 		f, erro := OpenFile(fn)
 		if erro != nil {
-			return errFio("open", fn, erro)
+			return errOp("open", string(fn), erro)
 		}
 		if e := f.Close(); e != nil {
-			return errFio("close", fn, e)
+			return errOp("close", string(fn), e)
 		}
 	}
 	return nil
@@ -176,11 +176,11 @@ func TouchFile(fn Filename) error {
 
 func OpenFile(fn Filename) (*os.File, error) {
 	if e := CheckFile(fn); e != nil {
-		return nil, errChk(fn, e)
+		return nil, errChk(string(fn), e)
 	}
 	f, err := os.OpenFile(string(fn), flags, fperm)
 	if err != nil {
-		return nil, errFio("open", fn, err)
+		return nil, errOp("open", string(fn), err)
 	}
 	return f, nil
 }

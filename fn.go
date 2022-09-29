@@ -70,17 +70,3 @@ func checkInval[T fio](f T) error {
 func Sprintf[T fio](format string, a ...any) T {
 	return T(fmt.Sprintf(format, a...))
 }
-
-func errChk[T fio](f T, err error) error {
-	if err == nil {
-		return nil
-	}
-	return fmt.Errorf("check %v failed: %w", f, err)
-}
-
-func errFio[T fio](op string, f T, err error) error {
-	if err == nil {
-		return nil
-	}
-	return fmt.Errorf("%v %v failed: %w", op, f, err)
-}

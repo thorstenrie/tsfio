@@ -90,25 +90,25 @@ func TestSprintf(t *testing.T) {
 }
 
 func TestErrChkNil(t *testing.T) {
-	if errChk(Filename(testcase), nil) != nil {
+	if errChk(testcase, nil) != nil {
 		t.Errorf("errChk returned error, but error expected to be nil")
 	}
 }
 
 func TestErrChk(t *testing.T) {
-	if errChk(Filename(testcase), fmt.Errorf("test")) == nil {
+	if errChk(testcase, fmt.Errorf("test")) == nil {
 		t.Errorf("errChk returned nil, but error expected")
 	}
 }
 
 func TestErrFioNil(t *testing.T) {
-	if errFio(testcase, Filename(testcase), nil) != nil {
+	if errOp(testcase, testcase, nil) != nil {
 		t.Errorf("errFio returned error, but error expected to be nil")
 	}
 }
 
 func TestErrFio(t *testing.T) {
-	if errFio(testcase, Filename(testcase), fmt.Errorf(testcase)) == nil {
+	if errOp(testcase, testcase, fmt.Errorf(testcase)) == nil {
 		t.Errorf("errFio returned nil, but error expected")
 	}
 }
