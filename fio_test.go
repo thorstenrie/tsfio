@@ -1,6 +1,7 @@
 package tsfio
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -13,16 +14,20 @@ func TestWriteStr(t *testing.T) {
 	fn := tmpFile(t)
 	for i := 0; i < rep; i++ {
 		if e := WriteStr(fn, testcase); e != nil {
-			t.Errorf("WriteStr %v to file %v failed: %v", testcase, fn, e)
+			t.Error(tserr.Op(&tserr.OpArgs{
+				Op:  fmt.Sprintf("WriteStr %v to file", testcase),
+				Fn:  string(fn),
+				Err: e,
+			}))
 		}
 		seq = seq + testcase
 	}
 	b, err := os.ReadFile(string(fn))
 	if err != nil {
-		t.Errorf("ReadFile %v failed: %v", fn, err)
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
 	}
 	if string(b) != seq {
-		t.Errorf("%v does not equal %v", string(b), seq)
+		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: seq}))
 	}
 }
 
@@ -30,10 +35,10 @@ func TestOpenFile(t *testing.T) {
 	fn := tmpFile(t)
 	f, err := OpenFile(fn)
 	if err != nil {
-		t.Errorf("OpenFile %v failed: %v", fn, err)
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(fn), Err: err}))
 	}
 	if e := f.Close(); e != nil {
-		t.Errorf("Close %v failed: %v", fn, err)
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "Close", Fn: string(fn), Err: e}))
 	}
 }
 
@@ -42,10 +47,10 @@ func TestOpenFileRm(t *testing.T) {
 	rm(t, fn)
 	f, err := OpenFile(fn)
 	if err != nil {
-		t.Errorf("OpenFile %v failed: %v", fn, err)
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(fn), Err: err}))
 	}
 	if e := f.Close(); e != nil {
-		t.Errorf("Close %v failed: %v", fn, err)
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "Close", Fn: string(fn), Err: e}))
 	}
 }
 
@@ -73,72 +78,84 @@ func TestWriteSingleStr(t *testing.T) {
 	fn := tmpFile(t)
 	for i := 0; i < rep; i++ {
 		if e := WriteSingleStr(fn, testcase); e != nil {
-			t.Errorf("WriteSingleStr %v to file %v failed: %v", testcase, fn, e)
+			t.Error(tserr.Op(&tserr.OpArgs{
+				Op:  fmt.Sprintf("WriteSingleStr %v to file", testcase),
+				Fn:  string(fn),
+				Err: e,
+			}))
 		}
 		seq = seq + testcase
 	}
 	b, err := os.ReadFile(string(fn))
 	if err != nil {
-		t.Errorf("ReadFile %v failed: %v", fn, err)
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
 	}
 	if string(b) != testcase {
-		t.Errorf("%v does not equal %v", string(b), testcase)
+		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: testcase}))
 	}
 }
 
 func TestWriteSingleStrErr(t *testing.T) {
 	if e := WriteSingleStr("", testcase); e == nil {
-		t.Errorf("WriteSingleStr returned nil, but error expected")
+		t.Error(tserr.NilFailed("WriteSingleStr"))
 	}
 }
 
 func TestReadFile(t *testing.T) {
 	fn := tmpFile(t)
 	if e := WriteStr(fn, testcase); e != nil {
-		t.Errorf("WriteStr %v to file %v failed: %v", testcase, fn, e)
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  fmt.Sprintf("WriteStr %v to file", testcase),
+			Fn:  string(fn),
+			Err: e,
+		}))
 	}
 	b, err := ReadFile(fn)
 	if err != nil {
-		t.Errorf("ReadFile %v failed: %v", fn, err)
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
 	}
 	if string(b) != testcase {
-		t.Errorf("%v does not equal %v", string(b), testcase)
+		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: testcase}))
 	}
 }
 
 func TestReadFileErr2(t *testing.T) {
 	fn := tmpFile(t)
 	if e := WriteStr(fn, testcase); e != nil {
-		t.Errorf("WriteStr %v to file %v failed: %v", testcase, fn, e)
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  fmt.Sprintf("WriteStr %v to file", testcase),
+			Fn:  string(fn),
+			Err: e,
+		}))
 	}
 	rm(t, fn)
 	_, err := ReadFile(fn)
 	if err == nil {
-		t.Errorf("ReadFile returned nil, but error expected")
+		t.Error(tserr.NilFailed("ReadFile"))
 	}
 }
 
 func TestReadFileErr1(t *testing.T) {
 	if _, e := ReadFile(""); e == nil {
-		t.Errorf("ReadFile returned nil, but error expected")
+		t.Error(tserr.NilFailed("ReadFile"))
 	}
 }
 
 func TestAppendFileNil(t *testing.T) {
 	if e := AppendFile(nil); e == nil {
-		t.Errorf("AppendFile returned nil, but error expected")
+		t.Error(tserr.NilFailed("AppendFile"))
 	}
 }
 
 func TestAppendFileEmpty1(t *testing.T) {
 	if e := AppendFile(&Append{fileA: "", fileI: tmpFile(t)}); e == nil {
-		t.Errorf("AppendFile returned nil, but error expected")
+		t.Error(tserr.NilFailed("AppendFile"))
 	}
 }
 
 func TestAppendFileEmpty2(t *testing.T) {
 	if e := AppendFile(&Append{fileI: "", fileA: tmpFile(t)}); e == nil {
-		t.Errorf("AppendFile returned nil, but error expected")
+		t.Error(tserr.NilFailed("AppendFile"))
 	}
 }
 
@@ -146,11 +163,19 @@ func TestAppendFile(t *testing.T) {
 	fn := [2]Filename{tmpFile(t), tmpFile(t)}
 	for _, i := range fn {
 		if e := WriteStr(i, testcase); e != nil {
-			t.Errorf("WriteStr %v to file %v failed: %v", testcase, i, e)
+			t.Error(tserr.Op(&tserr.OpArgs{
+				Op:  fmt.Sprintf("WriteStr %v to file", testcase),
+				Fn:  string(i),
+				Err: e,
+			}))
 		}
 	}
 	if e := AppendFile(&Append{fileA: fn[0], fileI: fn[1]}); e != nil {
-		t.Errorf("AppendFile %v to %v failed: %v", fn[1], fn[0], e)
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  fmt.Sprintf("AppendFile %v to file", fn[1]),
+			Fn:  string(fn[0]),
+			Err: e,
+		}))
 	}
 	b, err := os.ReadFile(string(fn[0]))
 	if err != nil {

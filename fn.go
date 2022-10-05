@@ -41,13 +41,13 @@ func checkWrapper[T fio](f T, dir bool) error {
 		if i.IsDir() == dir {
 			return nil
 		} else {
-			return tserr.TypeNotMatching(&tserr.TypeArgs{Act: string(f), Want: w})
+			return tserr.TypeNotMatching(&tserr.TypeNotMatchingArgs{Act: string(f), Want: w})
 		}
 	} else {
 		if os.IsNotExist(err) {
 			return nil
 		} else {
-			return tserr.Check(string(f), err)
+			return tserr.Check(&tserr.CheckArgs{F: string(f), Err: err})
 		}
 	}
 }
