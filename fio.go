@@ -181,3 +181,13 @@ func OpenFile(fn Filename) (*os.File, error) {
 	}
 	return f, nil
 }
+
+func CloseFile(f *os.File) error {
+	if f == nil {
+		return tserr.NilPtr()
+	}
+	if e := f.Close(); e != nil {
+		return tserr.Op(&tserr.OpArgs{Op: "Close", Fn: f.Name(), Err: e})
+	}
+	return nil
+}

@@ -24,7 +24,7 @@ func TestWriteStr(t *testing.T) {
 	}
 	b, err := os.ReadFile(string(fn))
 	if err != nil {
-		t.Error(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
+		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
 	}
 	if string(b) != seq {
 		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: seq}))
@@ -37,8 +37,8 @@ func TestOpenFile(t *testing.T) {
 	if err != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(fn), Err: err}))
 	}
-	if e := f.Close(); e != nil {
-		t.Error(tserr.Op(&tserr.OpArgs{Op: "Close", Fn: string(fn), Err: e}))
+	if e := CloseFile(f); e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "CloseFile", Fn: string(fn), Err: e}))
 	}
 }
 
@@ -49,8 +49,8 @@ func TestOpenFileRm(t *testing.T) {
 	if err != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(fn), Err: err}))
 	}
-	if e := f.Close(); e != nil {
-		t.Error(tserr.Op(&tserr.OpArgs{Op: "Close", Fn: string(fn), Err: e}))
+	if e := CloseFile(f); e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "CloseFile", Fn: string(fn), Err: e}))
 	}
 }
 
