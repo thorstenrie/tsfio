@@ -57,13 +57,13 @@ func checkInval[T fio](f T) error {
 	for _, i := range invalFile {
 		ic := filepath.Clean(string(i))
 		if ic == fc {
-			return fmt.Errorf("file operation on %v not allowed", f)
+			return tserr.Forbidden(string(f))
 		}
 	}
 	for _, i := range invalDir {
 		ic := filepath.Clean(string(i))
 		if strings.HasPrefix(fc, ic) {
-			return fmt.Errorf("directory %v in %v blocked by default", i, f)
+			return tserr.Forbidden(string(i))
 		}
 	}
 	return nil
