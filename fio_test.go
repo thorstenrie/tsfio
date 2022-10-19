@@ -179,17 +179,21 @@ func TestAppendFile(t *testing.T) {
 	}
 	b, err := os.ReadFile(string(fn[0]))
 	if err != nil {
-		t.Errorf("ReadFile %v failed: %v", fn[0], err)
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  "ReadFile",
+			Fn:  string(fn[0]),
+			Err: err,
+		}))
 	}
 	if string(b) != testcase+testcase {
-		t.Errorf("%v does not equal %v", string(b), testcase+testcase)
+		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: testcase + testcase}))
 	}
 }
 
 func TestExistsFileEmpty(t *testing.T) {
 	_, e := ExistsFile("")
 	if e == nil {
-		t.Errorf("ExistsFile returned nil, but error expected")
+		t.Error(tserr.NilFailed("ExistsFile"))
 	}
 }
 
@@ -208,9 +212,18 @@ func testExistsFileWrapper(t *testing.T, r bool) {
 	}
 	b, e := ExistsFile(fn)
 	if e != nil {
-		t.Errorf("ExistsFile %v failed: %v", fn, e)
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  "ExistsFile",
+			Fn:  string(fn),
+			Err: e,
+		}))
 	}
 	if b == r {
 		t.Errorf("ExistsFile %v returned %t, but %t expected", fn, b, !b)
+		t.Error(tserr.Return(&tserr.ReturnArgs{
+			Op:     "ExistsFile",
+			Actual: fmt.Sprintf("%t", b),
+			Want:   fmt.Sprintf("%t", !b),
+		}))
 	}
 }
