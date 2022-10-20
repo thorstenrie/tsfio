@@ -8,29 +8,6 @@ import (
 	"github.com/thorstenrie/tserr"
 )
 
-func TestWriteStr(t *testing.T) {
-	rep := 2
-	seq := ""
-	fn := tmpFile(t)
-	for i := 0; i < rep; i++ {
-		if e := WriteStr(fn, testcase); e != nil {
-			t.Error(tserr.Op(&tserr.OpArgs{
-				Op:  fmt.Sprintf("WriteStr %v to file", testcase),
-				Fn:  string(fn),
-				Err: e,
-			}))
-		}
-		seq = seq + testcase
-	}
-	b, err := os.ReadFile(string(fn))
-	if err != nil {
-		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
-	}
-	if string(b) != seq {
-		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: seq}))
-	}
-}
-
 func TestOpenFile(t *testing.T) {
 	fn := tmpFile(t)
 	f, err := OpenFile(fn)
@@ -60,15 +37,79 @@ func TestOpenFileEmpty(t *testing.T) {
 	}
 }
 
-func TestTouchFileEmpty(t *testing.T) {
-	if e := TouchFile(""); e == nil {
-		t.Error(tserr.NilFailed("TouchFile"))
+func TestCloseFileNil(t *testing.T) {
+	if err := CloseFile(nil); err == nil {
+		t.Error(tserr.NilFailed("CloseFile"))
+	}
+}
+
+func TestCloseFile(t *testing.T) {
+	fn := tmpFile(t)
+	f, e := OpenFile(fn)
+	if e != nil {
+		t.Fatal(tserr.Op(&tserr.OpArgs{
+			Op:  "OpenFile",
+			Fn:  string(fn),
+			Err: e,
+		}))
+	}
+	if err := CloseFile(f); err != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  "CloseFile",
+			Fn:  f.Name(),
+			Err: err,
+		}))
+	}
+}
+
+func TestCloseFileErr(t *testing.T) {
+	fn := tmpFile(t)
+	f, e := OpenFile(fn)
+	if e != nil {
+		t.Fatal(tserr.Op(&tserr.OpArgs{
+			Op:  "OpenFile",
+			Fn:  string(fn),
+			Err: e,
+		}))
+	}
+	f.Close()
+	if err := CloseFile(f); err == nil {
+		t.Error(tserr.NilFailed("CloseFile"))
+	}
+}
+
+func TestWriteStr(t *testing.T) {
+	rep := 2
+	seq := ""
+	fn := tmpFile(t)
+	for i := 0; i < rep; i++ {
+		if e := WriteStr(fn, testcase); e != nil {
+			t.Error(tserr.Op(&tserr.OpArgs{
+				Op:  fmt.Sprintf("WriteStr %v to file", testcase),
+				Fn:  string(fn),
+				Err: e,
+			}))
+		}
+		seq = seq + testcase
+	}
+	b, err := os.ReadFile(string(fn))
+	if err != nil {
+		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
+	}
+	if string(b) != seq {
+		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: seq}))
 	}
 }
 
 func TestWriteStrErr(t *testing.T) {
 	if e := WriteStr("", testcase); e == nil {
 		t.Error(tserr.NilFailed("WriteStr"))
+	}
+}
+
+func TestTouchFileEmpty(t *testing.T) {
+	if e := TouchFile(""); e == nil {
+		t.Error(tserr.NilFailed("TouchFile"))
 	}
 }
 

@@ -15,6 +15,27 @@ const (
 	dperm fs.FileMode = 0755
 )
 
+func OpenFile(fn Filename) (*os.File, error) {
+	if e := CheckFile(fn); e != nil {
+		return nil, tserr.Check(&tserr.CheckArgs{F: string(fn), Err: e})
+	}
+	f, err := os.OpenFile(string(fn), flags, fperm)
+	if err != nil {
+		return nil, tserr.Op(&tserr.OpArgs{Op: "open", Fn: string(fn), Err: err})
+	}
+	return f, nil
+}
+
+func CloseFile(f *os.File) error {
+	if f == nil {
+		return tserr.NilPtr()
+	}
+	if e := f.Close(); e != nil {
+		return tserr.Op(&tserr.OpArgs{Op: "Close", Fn: f.Name(), Err: e})
+	}
+	return nil
+}
+
 func WriteStr(fn Filename, s string) error {
 	f, err := OpenFile(fn)
 	if err != nil {
@@ -167,27 +188,6 @@ func TouchFile(fn Filename) error {
 		if e := f.Close(); e != nil {
 			return tserr.Op(&tserr.OpArgs{Op: "close", Fn: string(fn), Err: e})
 		}
-	}
-	return nil
-}
-
-func OpenFile(fn Filename) (*os.File, error) {
-	if e := CheckFile(fn); e != nil {
-		return nil, tserr.Check(&tserr.CheckArgs{F: string(fn), Err: e})
-	}
-	f, err := os.OpenFile(string(fn), flags, fperm)
-	if err != nil {
-		return nil, tserr.Op(&tserr.OpArgs{Op: "open", Fn: string(fn), Err: err})
-	}
-	return f, nil
-}
-
-func CloseFile(f *os.File) error {
-	if f == nil {
-		return tserr.NilPtr()
-	}
-	if e := f.Close(); e != nil {
-		return tserr.Op(&tserr.OpArgs{Op: "Close", Fn: f.Name(), Err: e})
 	}
 	return nil
 }
