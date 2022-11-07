@@ -260,11 +260,50 @@ func testExistsFileWrapper(t *testing.T, r bool) {
 		}))
 	}
 	if b == r {
-		t.Errorf("ExistsFile %v returned %t, but %t expected", fn, b, !b)
 		t.Error(tserr.Return(&tserr.ReturnArgs{
 			Op:     "ExistsFile",
 			Actual: fmt.Sprintf("%t", b),
 			Want:   fmt.Sprintf("%t", !b),
 		}))
+	}
+}
+
+func TestRemoveFileEmpty(t *testing.T) {
+	if err := RemoveFile(""); err == nil {
+		t.Error(tserr.NilFailed("RemoveFile"))
+	}
+}
+
+func TestRemoveFile1(t *testing.T) {
+	fn := tmpFile(t)
+	if e := RemoveFile(fn); e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  "RemoveFile",
+			Fn:  string(fn),
+			Err: e,
+		}))
+	}
+	b, err := ExistsFile(fn)
+	if err != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  "ExistsFile",
+			Fn:  string(fn),
+			Err: err,
+		}))
+	}
+	if b {
+		t.Error(tserr.Return(&tserr.ReturnArgs{
+			Op:     "ExistsFile",
+			Actual: fmt.Sprintf("%t", b),
+			Want:   fmt.Sprintf("%t", !b),
+		}))
+	}
+}
+
+func TestRemoveFile2(t *testing.T) {
+	fn := tmpFile(t)
+	rm(t, fn)
+	if e := RemoveFile(fn); e == nil {
+		t.Error(tserr.NilFailed("RemoveFile"))
 	}
 }

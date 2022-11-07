@@ -15,6 +15,7 @@ const (
 	dperm fs.FileMode = 0755
 )
 
+// If file does not exist, then it is created (see flags)
 func OpenFile(fn Filename) (*os.File, error) {
 	if e := CheckFile(fn); e != nil {
 		return nil, tserr.Check(&tserr.CheckArgs{F: string(fn), Err: e})
