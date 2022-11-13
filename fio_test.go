@@ -4,24 +4,24 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/thorstenrie/tserr"
 )
 
-func TestOpenFile(t *testing.T) {
-	fn := tmpFile(t)
-	f, err := OpenFile(fn)
-	if err != nil {
-		t.Error(tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(fn), Err: err}))
-	}
-	if e := CloseFile(f); e != nil {
-		t.Error(tserr.Op(&tserr.OpArgs{Op: "CloseFile", Fn: string(fn), Err: e}))
-	}
+func TestOpenFile1(t *testing.T) {
+	testOpenFile(t, false)
 }
 
-func TestOpenFileRm(t *testing.T) {
+func TestOpenFile2(t *testing.T) {
+	testOpenFile(t, true)
+}
+
+func testOpenFile(t *testing.T, r bool) {
 	fn := tmpFile(t)
-	rm(t, fn)
+	if r {
+		rm(t, fn)
+	}
 	f, err := OpenFile(fn)
 	if err != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(fn), Err: err}))
@@ -29,12 +29,43 @@ func TestOpenFileRm(t *testing.T) {
 	if e := CloseFile(f); e != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "CloseFile", Fn: string(fn), Err: e}))
 	}
+	rm(t, fn)
 }
 
 func TestOpenFileEmpty(t *testing.T) {
 	if _, err := OpenFile(""); err == nil {
 		t.Error(tserr.NilFailed("OpenFile"))
 	}
+}
+
+func TestCreateDirEmpty(t *testing.T) {
+	if err := CreateDir(""); err == nil {
+		t.Error(tserr.NilFailed("CreateDir"))
+	}
+}
+
+func TestCreateDir1(t *testing.T) {
+	d := tmpDir(t)
+	rm(t, d)
+	if err := CreateDir(d); err != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "CreateDir", Fn: string(d), Err: err}))
+	}
+	_, e := os.Stat(string(d))
+	if os.IsNotExist(e) {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "CreateDir", Fn: string(d), Err: e}))
+	}
+	if e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "FileInfo (Stat) of", Fn: string(d), Err: e}))
+	}
+	rm(t, d)
+}
+
+func TestCreateDir2(t *testing.T) {
+	d := tmpDir(t)
+	if err := CreateDir(d); err != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "CreateDir", Fn: string(d), Err: err}))
+	}
+	rm(t, d)
 }
 
 func TestCloseFileNil(t *testing.T) {
@@ -47,7 +78,7 @@ func TestCloseFile(t *testing.T) {
 	fn := tmpFile(t)
 	f, e := OpenFile(fn)
 	if e != nil {
-		t.Fatal(tserr.Op(&tserr.OpArgs{
+		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "OpenFile",
 			Fn:  string(fn),
 			Err: e,
@@ -60,6 +91,7 @@ func TestCloseFile(t *testing.T) {
 			Err: err,
 		}))
 	}
+	rm(t, fn)
 }
 
 func TestCloseFileErr(t *testing.T) {
@@ -76,6 +108,7 @@ func TestCloseFileErr(t *testing.T) {
 	if err := CloseFile(f); err == nil {
 		t.Error(tserr.NilFailed("CloseFile"))
 	}
+	rm(t, fn)
 }
 
 func TestWriteStr(t *testing.T) {
@@ -99,6 +132,7 @@ func TestWriteStr(t *testing.T) {
 	if string(b) != seq {
 		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: seq}))
 	}
+	rm(t, fn)
 }
 
 func TestWriteStrErr(t *testing.T) {
@@ -111,6 +145,40 @@ func TestTouchFileEmpty(t *testing.T) {
 	if e := TouchFile(""); e == nil {
 		t.Error(tserr.NilFailed("TouchFile"))
 	}
+}
+
+func TestTouchFile1(t *testing.T) {
+	testTouchFile(t, false)
+}
+
+func TestTouchFile2(t *testing.T) {
+	testTouchFile(t, true)
+}
+
+func testTouchFile(t *testing.T, r bool) {
+	fn := tmpFile(t)
+	t1 := modTime(t, fn)
+	if r {
+		rm(t, fn)
+	}
+	time.Sleep(time.Second)
+	if e := TouchFile(fn); e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  "TouchFile",
+			Fn:  string(fn),
+			Err: e,
+		}))
+	}
+	t2 := modTime(t, fn)
+	d := t2.Sub(t1)
+	if d.Round(time.Second) < time.Second {
+		t.Error(tserr.Higher(&tserr.HigherArgs{
+			Var:        "t2 - t1",
+			Actual:     int64(d),
+			LowerBound: int64(time.Second),
+		}))
+	}
+	rm(t, fn)
 }
 
 func TestWriteSingleStr(t *testing.T) {
@@ -129,11 +197,12 @@ func TestWriteSingleStr(t *testing.T) {
 	}
 	b, err := os.ReadFile(string(fn))
 	if err != nil {
-		t.Error(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
+		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
 	}
 	if string(b) != testcase {
 		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: testcase}))
 	}
+	rm(t, fn)
 }
 
 func TestWriteSingleStrErr(t *testing.T) {
@@ -153,11 +222,12 @@ func TestReadFile(t *testing.T) {
 	}
 	b, err := ReadFile(fn)
 	if err != nil {
-		t.Error(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
+		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
 	}
 	if string(b) != testcase {
 		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: testcase}))
 	}
+	rm(t, fn)
 }
 
 func TestReadFileErr2(t *testing.T) {
@@ -189,15 +259,19 @@ func TestAppendFileNil(t *testing.T) {
 }
 
 func TestAppendFileEmpty1(t *testing.T) {
-	if e := AppendFile(&Append{fileA: "", fileI: tmpFile(t)}); e == nil {
+	fn := tmpFile(t)
+	if e := AppendFile(&Append{fileA: "", fileI: fn}); e == nil {
 		t.Error(tserr.NilFailed("AppendFile"))
 	}
+	rm(t, fn)
 }
 
 func TestAppendFileEmpty2(t *testing.T) {
-	if e := AppendFile(&Append{fileI: "", fileA: tmpFile(t)}); e == nil {
+	fn := tmpFile(t)
+	if e := AppendFile(&Append{fileI: "", fileA: fn}); e == nil {
 		t.Error(tserr.NilFailed("AppendFile"))
 	}
+	rm(t, fn)
 }
 
 func TestAppendFile(t *testing.T) {
@@ -220,7 +294,7 @@ func TestAppendFile(t *testing.T) {
 	}
 	b, err := os.ReadFile(string(fn[0]))
 	if err != nil {
-		t.Error(tserr.Op(&tserr.OpArgs{
+		t.Fatal(tserr.Op(&tserr.OpArgs{
 			Op:  "ReadFile",
 			Fn:  string(fn[0]),
 			Err: err,
@@ -228,6 +302,9 @@ func TestAppendFile(t *testing.T) {
 	}
 	if string(b) != testcase+testcase {
 		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: testcase + testcase}))
+	}
+	for _, i := range fn {
+		rm(t, i)
 	}
 }
 
@@ -265,6 +342,9 @@ func testExistsFileWrapper(t *testing.T, r bool) {
 			Actual: fmt.Sprintf("%t", b),
 			Want:   fmt.Sprintf("%t", !b),
 		}))
+	}
+	if !r {
+		rm(t, fn)
 	}
 }
 
@@ -306,4 +386,49 @@ func TestRemoveFile2(t *testing.T) {
 	if e := RemoveFile(fn); e == nil {
 		t.Error(tserr.NilFailed("RemoveFile"))
 	}
+}
+
+func TestResetFileEmpty(t *testing.T) {
+	if err := ResetFile(""); err == nil {
+		t.Error(tserr.NilFailed("ResetFile"))
+	}
+}
+
+func TestResetFile1(t *testing.T) {
+	testResetFile(t, false)
+}
+
+func TestResetFile2(t *testing.T) {
+	testResetFile(t, true)
+}
+
+func testResetFile(t *testing.T, r bool) {
+	fn := tmpFile(t)
+	WriteSingleStr(fn, testcase)
+	if r {
+		rm(t, fn)
+	}
+	if err := ResetFile(fn); err != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  "ResetFile",
+			Fn:  string(fn),
+			Err: err,
+		}))
+	}
+	fi, e := os.Stat(string(fn))
+	if e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  "FileInfo (Stat) of",
+			Fn:  string(fn),
+			Err: e,
+		}))
+	}
+	if fi.Size() > 0 {
+		t.Error(tserr.Equal(&tserr.EqualArgs{
+			Var:    fmt.Sprintf("Size of %v", fn),
+			Actual: fi.Size(),
+			Want:   0,
+		}))
+	}
+	rm(t, fn)
 }

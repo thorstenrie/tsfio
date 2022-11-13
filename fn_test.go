@@ -46,6 +46,7 @@ func TestDir1(t *testing.T) {
 			Want:   "nil",
 		}))
 	}
+	rm(t, d)
 }
 
 func TestFile1(t *testing.T) {
@@ -57,6 +58,7 @@ func TestFile1(t *testing.T) {
 			Want:   "nil",
 		}))
 	}
+	rm(t, f)
 }
 
 func TestDir2(t *testing.T) {
@@ -88,6 +90,7 @@ func TestDir3(t *testing.T) {
 	if CheckDir(Directory(f)) == nil {
 		t.Error(tserr.NilFailed(fmt.Sprintf("CheckDir of file %v", f)))
 	}
+	rm(t, f)
 }
 
 func TestFile3(t *testing.T) {
@@ -95,6 +98,7 @@ func TestFile3(t *testing.T) {
 	if CheckFile(Filename(d)) == nil {
 		t.Error(tserr.NilFailed(fmt.Sprintf("CheckFile of directory %v", d)))
 	}
+	rm(t, d)
 }
 
 func TestSprintf(t *testing.T) {

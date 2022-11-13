@@ -3,6 +3,7 @@ package tsfio
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/thorstenrie/tserr"
 )
@@ -31,6 +32,19 @@ func tmpFile(t *testing.T) Filename {
 
 func rm[T fio](t *testing.T, a T) {
 	if err := os.Remove(string(a)); err != nil {
-		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "remove", Fn: string(a), Err: err}))
+		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "Remove", Fn: string(a), Err: err}))
 	}
+}
+
+func modTime(t *testing.T, fn Filename) time.Time {
+	fi, err := os.Stat(string(fn))
+	if err != nil {
+		t.Fatal(tserr.Op(&tserr.OpArgs{
+			Op:  "Stat",
+			Fn:  string(fn),
+			Err: err,
+		}))
+	}
+	t1 := fi.ModTime()
+	return t1
 }
