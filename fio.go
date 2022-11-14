@@ -1,42 +1,79 @@
+// Package tsfio provides a simple API for file input output based on the standard library.
+//
+// The tsfio package is a supplement to the standard library and supplies additional
+// functions for file input output operations, e.g., appending one file to another file.
+// Also, all file input output operations on Linux and Windows system directories or
+// files are blocked (see inval_unix.go and inval_win.go) and an error is returned.
+// Default flags and file mode is used when opening files, creating files or directories
+// and when writing to files (with exceptions documented in the function descriptions)
+//
+//   - Files are opened read-write (os.O_RDWR).
+//   - Data is appended when writing to file (os.O_APPEND).
+//   - A file is created if it does not exist (os.O_CREATE).
+//   - File mode and permission bits are 0644.
+//   - Directory mode and permissions bits are 0755.
+//
+// If an API call is not successful, a tserr error in JSON format is returned.
+//
+// Copyright (c) 2022 thorstenrie.
+// All Rights Reserved. Use is governed with GNU Affero General Public Licence v3.0
+// that can be found in the LICENSE file.
 package tsfio
 
-// All API functions must contain a CheckFile or CheckDir call first. This
-// can't be tested, because a failed test could break the testing environment.
-
+// Import standard library packages and tserr
 import (
-	"fmt"
-	"io/fs"
-	"os"
-	"time"
+	"fmt"   // fmt
+	"io/fs" // ios/fs
+	"os"    // os
+	"time"  // time
 
-	"github.com/thorstenrie/tserr"
+	"github.com/thorstenrie/tserr" // tserr
 )
 
+// The constants hold the default flags and file mode
 const (
-	flags int         = os.O_APPEND | os.O_CREATE | os.O_WRONLY
+	// Int flags holds the default for files opened read-write, created if it does not exist, data is appended
+	flags int = os.O_APPEND | os.O_CREATE | os.O_RDWR
+	// FileMode fperm holds the default file mode and permission bits
 	fperm fs.FileMode = 0644
+	// FileMode dperm holds the default directory mode and permissions bits
 	dperm fs.FileMode = 0755
 )
 
-// If file does not exist, then it is created (see flags)
+// Note: All external functions must contain a CheckFile or CheckDir call at the beginning.
+// This can't be tested, because a failed test could break the testing environment.
+
+// OpenFile opens the named file fn with default flags and permission bits. If the file does
+// not exist, it is created. If opened successful, the file is returned and can be used for
+// file input output and error is nil.
 func OpenFile(fn Filename) (*os.File, error) {
+	// Return nil and error in case fn contains a blocked directory or filename
 	if e := CheckFile(fn); e != nil {
 		return nil, tserr.Check(&tserr.CheckArgs{F: string(fn), Err: e})
 	}
+	// Open file with default flags and permission bits
 	f, err := os.OpenFile(string(fn), flags, fperm)
+	// In case of an error, return nil and error
 	if err != nil {
 		return nil, tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(fn), Err: err})
 	}
+	// If successfull, return file for file input output
 	return f, nil
 }
 
+// CloseFile closes f and f is unusable for file input output. An error is returned
+// if f has already been closed.
 func CloseFile(f *os.File) error {
+	// Return error in case f is nil
 	if f == nil {
 		return tserr.NilPtr()
 	}
+	// Close f
 	if e := f.Close(); e != nil {
+		// Return error if not successful
 		return tserr.Op(&tserr.OpArgs{Op: "Close", Fn: f.Name(), Err: e})
 	}
+	// If successful, return nil
 	return nil
 }
 
@@ -176,7 +213,7 @@ func CreateDir(d Directory) error {
 	}
 	err := os.MkdirAll(string(d), dperm)
 	if err != nil {
-		return tserr.Op(&tserr.OpArgs{Op: "Make directory", Fn: string(d), Err: err})
+		return tserr.Op(&tserr.OpArgs{Op: "make directory", Fn: string(d), Err: err})
 	}
 	return nil
 }
