@@ -77,163 +77,256 @@ func CloseFile(f *os.File) error {
 	return nil
 }
 
+// WriteStr writes string s to file with filename fn. It returns an error, if any. If
+// fn exists already, the string will be appended to the file. If fn does not exist,
+// it will create fn.
 func WriteStr(fn Filename, s string) error {
+	// Return an error in case fn contains a blocked directory or filename
 	if e := CheckFile(fn); e != nil {
 		return tserr.Check(&tserr.CheckArgs{F: string(fn), Err: e})
 	}
+	// Open file fn with default flags and permission bits. If the file does
+	// not exist, it is created.
 	f, err := OpenFile(fn)
+	// Return error, if OpenFile fails
 	if err != nil {
 		return tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(fn), Err: err})
 	}
+	// Write string s to file fn
 	if _, e := f.WriteString(s); e != nil {
+		// On error, close file and return error
 		f.Close()
 		return tserr.Op(&tserr.OpArgs{Op: "write string to", Fn: string(fn), Err: e})
 	}
+	// Close file and return nil
+	f.Close()
 	return nil
 }
 
+// TouchFile updates the access and modification times of filename fn to the
+// current time. If fn does not exist, it is created as an empty file. It returns
+// an error, if any.
 func TouchFile(fn Filename) error {
+	// Return an error in case fn contains a blocked directory or filename
 	if e := CheckFile(fn); e != nil {
 		return tserr.Check(&tserr.CheckArgs{F: string(fn), Err: e})
 	}
+	// Check if file fn exists
 	b, erre := ExistsFile(fn)
+	// Return error if ExistsFile fails
 	if erre != nil {
 		return tserr.Op(&tserr.OpArgs{Op: "ExistsFile", Fn: string(fn), Err: erre})
 	}
+	// If fn exists, update the access and modification times of fn
 	if b {
+		// Get current time
 		t := time.Now().Local()
+		// Update access and modification times of fn. Return error, if any.
 		if e := os.Chtimes(string(fn), t, t); e != nil {
 			return tserr.Op(&tserr.OpArgs{Op: "Chtimes", Fn: string(fn), Err: e})
 		}
 	} else {
+		// If file does not exist, then create fn with OpenFile.
 		f, erro := OpenFile(fn)
+		// Return error if OpenFile fails.
 		if erro != nil {
 			return tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(fn), Err: erro})
 		}
+		// Close fn
 		if e := f.Close(); e != nil {
+			// Return error, if Close fails.
 			return tserr.Op(&tserr.OpArgs{Op: "Close", Fn: string(fn), Err: e})
 		}
 	}
+	// No error occurred and return nil
 	return nil
 }
 
+// WriteSingleStr writes a single string s to file fn. If fn exists, it is
+// truncated to size zero first. If it does not exist, it is created. It
+// returns an error, if any.
 func WriteSingleStr(fn Filename, s string) error {
+	// Return an error in case fn contains a blocked directory or filename
 	if e := CheckFile(fn); e != nil {
 		return tserr.Check(&tserr.CheckArgs{F: string(fn), Err: e})
 	}
+	// Truncate fn to size zero with ResetFile
 	if e := ResetFile(fn); e != nil {
+		// Return error if ResetFile fails
 		return tserr.Op(&tserr.OpArgs{Op: "ResetFile", Fn: string(fn), Err: e})
 	}
+	// Write string s to fn with WriteStr
 	if e := WriteStr(fn, s); e != nil {
+		// Return error if WriteStr fails
 		return tserr.Op(&tserr.OpArgs{Op: fmt.Sprintf("write string %v to", s), Fn: string(fn), Err: e})
 	}
+	// No error occurred, return nil
 	return nil
 }
 
+// ReadFile reads f and and returns it contents. It returns an error, if any. If a file
+// does not exist, it returns an error. If successful, error will be nil.
 func ReadFile(f Filename) ([]byte, error) {
+	// Return an error in case f contains a blocked directory or filename
 	if e := CheckFile(f); e != nil {
 		return nil, tserr.Check(&tserr.CheckArgs{F: string(f), Err: e})
 	}
+	// Read f and return its contents
 	b, err := os.ReadFile(string(f))
+	// Return b as nil and the retrieved error, if ReadFile fails
 	if err != nil {
 		return nil, tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(f), Err: err})
 	}
+	// No error occurred, return contents and error is nil
 	return b, nil
 }
 
+// Append holds filename fileA, the file to be extended by contents from file I,
+// and filename fileI, which is the input file and will be appended to fileA.
 type Append struct {
-	fileA Filename
-	fileI Filename
+	fileA Filename // fileA to be extended
+	fileI Filename // fileI holds the contents to be appended to fileA
 }
 
+// AppendFile appends a file to another file. It receives a pointer to struct
+// Append which holds fileA, the file to be extended by contents of fileI and
+// fileI, the input file, holding the contents to be appended to fileA. As result,
+// fileA holds its original content extended by the contents of fileI, and fileI
+// remains as before. If fileA does not exist, it is created as empty file and as
+// result will hold the contents of fileI. If fileI does not exist, it returns
+// an error. AppendFile returns an error, if any.
 func AppendFile(a *Append) error {
+	// Return error if pointer a is nil.
 	if a == nil {
 		return fmt.Errorf("nil pointer")
 	}
+	// Return an error in case fileA contains a blocked directory or filename
 	if e := CheckFile(a.fileA); e != nil {
 		return tserr.Check(&tserr.CheckArgs{F: string(a.fileA), Err: e})
 	}
+	// Return an error in case fileI contains a blocked directory or filename
 	if e := CheckFile(a.fileI); e != nil {
 		return tserr.Check(&tserr.CheckArgs{F: string(a.fileI), Err: e})
 	}
+	// Open fileA. If it does not exist, then create fileA as empty file.
 	f, erro := OpenFile(a.fileA)
+	// Return error, if any
 	if erro != nil {
 		return tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(a.fileA), Err: erro})
 	}
+	// Read contents of fileI
 	out, errr := ReadFile(a.fileI)
+	// Return error, if any
 	if errr != nil {
 		return tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(a.fileI), Err: errr})
 	}
+	// Write contents of fileI to fileA
 	if _, e := f.Write(out); e != nil {
+		// If Write filas, close fileA and return error
 		f.Close()
 		return tserr.Op(&tserr.OpArgs{Op: fmt.Sprintf("append file %v to", a.fileI), Fn: string(a.fileA), Err: e})
 	}
+	// Close fileA
 	if e := f.Close(); e != nil {
+		// If Close fails, return error
 		return tserr.Op(&tserr.OpArgs{Op: "Close", Fn: string(a.fileA), Err: e})
 	}
+	// No error occurred, return nil
 	return nil
 }
 
+// ExistsFile returns true if file fn exists, returns false otherwise. It returns false and an error
+// if there is any. If fn is a directory, ExistsFile returns false and an error.
 func ExistsFile(fn Filename) (bool, error) {
+	// Return an error in case fn contains a blocked directory or filename
 	if err := CheckFile(fn); err != nil {
 		return false, tserr.Check(&tserr.CheckArgs{F: string(fn), Err: err})
 	}
+	// Retrieve FileInfo of fn
 	_, err := os.Stat(string(fn))
+	// If Stat is sucessfull return true and error as nil
 	if err == nil {
 		return true, nil
 	}
+	// If Stat returns an error reporting fn does not exist, return fals and error as nil
 	if os.IsNotExist(err) {
 		return false, nil
 	}
+	// For any other error of Stat return false and the error
 	return false, tserr.Op(&tserr.OpArgs{Op: "FileInfo (Stat) of", Fn: string(fn), Err: err})
 }
 
+// RemoveFile removes file f. It returns an error, if there is any. If f is a directory
+// it returns an error. If f does not exist, it also returns an error.
 func RemoveFile(f Filename) error {
+	// Return an error in case f contains a blocked directory or filename
 	if e := CheckFile(f); e != nil {
 		return tserr.Check(&tserr.CheckArgs{F: string(f), Err: e})
 	}
+	// Check if f exists
 	b, err := ExistsFile(f)
 	if err != nil {
+		// Return an error if ExistsFile fails
 		return tserr.Op(&tserr.OpArgs{Op: "check if exists", Fn: string(f), Err: err})
 	}
 	if b {
+		// Remove f, if it exists
 		e := os.Remove(string(f))
 		if e != nil {
+			// Return an error if Remove fails
 			return tserr.Op(&tserr.OpArgs{Op: "Remove", Fn: string(f), Err: err})
 		}
 	} else {
+		// Return an error if f does not exist
 		return tserr.NotExistent(string(f))
 	}
+	// No error occurred, return nil
 	return nil
 }
 
+// CreateDir creates a directory named d with any necessary parents. If d already exists as
+// directory, it does nothing and returns nil. It returns an error, if there is any.
 func CreateDir(d Directory) error {
+	// Return an error in case d contains a blocked directory or filename
 	if e := CheckDir(d); e != nil {
 		return tserr.Check(&tserr.CheckArgs{F: string(d), Err: e})
 	}
+	// Create directory named d with any necessary parents
 	err := os.MkdirAll(string(d), dperm)
 	if err != nil {
+		// Return an error, if MKdirAll fails
 		return tserr.Op(&tserr.OpArgs{Op: "make directory", Fn: string(d), Err: err})
 	}
+	// No error occurred, return nil
 	return nil
 }
 
+// ResetFile truncates fn to size zero. If fn does not exist, it is created as empty file.
+// It returns an error, if there is any.
 func ResetFile(fn Filename) error {
+	// Return an error in case fn contains a blocked directory or filename
 	if e := CheckFile(fn); e != nil {
 		return tserr.Check(&tserr.CheckArgs{F: string(fn), Err: e})
 	}
+	// Check if fn exists
 	b, err := ExistsFile(fn)
 	if err != nil {
+		// Return error, if ExistsFile fails
 		return tserr.Op(&tserr.OpArgs{Op: "check if exists", Fn: string(fn), Err: err})
 	}
 	if !b {
+		// If fn does not exist, it is created as an empty file with TouchFile
 		if e := TouchFile(fn); e != nil {
+			// Return error, if TouchFile fails
 			return tserr.Op(&tserr.OpArgs{Op: "TouchFile", Fn: string(fn), Err: e})
 		}
 	}
+	// Truncate file fn to size zero
 	err = os.Truncate(string(fn), 0)
 	if err != nil {
+		// Return error if Truncate fails
 		return tserr.Op(&tserr.OpArgs{Op: "Truncate", Fn: string(fn), Err: err})
 	}
+	// No error occurred, return nil
 	return nil
 }
