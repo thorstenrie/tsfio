@@ -248,7 +248,7 @@ func ExistsFile(fn Filename) (bool, error) {
 	if err == nil {
 		return true, nil
 	}
-	// If Stat returns an error reporting fn does not exist, return fals and error as nil
+	// If Stat returns an error reporting fn does not exist, return false and error as nil
 	if os.IsNotExist(err) {
 		return false, nil
 	}
