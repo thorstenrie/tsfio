@@ -2,6 +2,10 @@
 
 package tsfio
 
+// Windows blocked Directories and Filenames
+// If Directories or their parents match invalDir,
+// tsfio functions will return an error. If Filenames
+// match invalFile, tsfio functions will return an error.
 var (
 	invalDir [4]Directory = [4]Directory{
 		"C:\\Windows\\System32",
