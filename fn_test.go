@@ -8,9 +8,15 @@ import (
 	"github.com/thorstenrie/tserr"
 )
 
+// TestBlockedDir tests if CheckFile returns an error for all
+// blocked directories in invalDir. If it returns nil for
+// a blocked directory, the test fails.
 func TestBlockedDir(t *testing.T) {
+	// Iterate test over all directories in invalDir
 	for _, d := range invalDir {
+		// Create test Filename p containing the blocked directory
 		p := Filename(d) + Filename(os.PathSeparator) + testfile
+		// If CheckFile returns nil, then test fails
 		if CheckFile(p) == nil {
 			t.Error(tserr.NilFailed(fmt.Sprintf("CheckFile of %v", d)))
 		}
