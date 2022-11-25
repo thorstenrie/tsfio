@@ -16,28 +16,41 @@ func TestBlockedDir(t *testing.T) {
 	for _, d := range invalDir {
 		// Create test Filename p containing the blocked directory
 		p := Filename(d) + Filename(os.PathSeparator) + testfile
-		// If CheckFile returns nil, then test fails
+		// If CheckFile returns nil, then the test fails
 		if CheckFile(p) == nil {
 			t.Error(tserr.NilFailed(fmt.Sprintf("CheckFile of %v", d)))
 		}
 	}
 }
 
+// TestInvalFile tests if CheckFile returns an error for all
+// blocked files in invalFile. If it returns nil for a blocked
+// file, the test fails.
 func TestInvalFile(t *testing.T) {
+	// Iterate test over all files in invalFile
 	for _, d := range invalFile {
+		// If CheckFile returns nil, then the test fails
 		if CheckFile(d) == nil {
 			t.Error(tserr.NilFailed(fmt.Sprintf("CheckFile of %v", d)))
 		}
 	}
 }
 
+// TestEmptyDir tests if CheckDir returns an error for an empty string
+// as Directory. If it returns nil for the empty string as Directory,
+// the test fails.
 func TestEmptyDir(t *testing.T) {
+	// If CheckDir of the empty string as Directory returns nil, then the test fails
 	if err := CheckDir(""); err == nil {
 		t.Error(tserr.NilFailed("CheckDir"))
 	}
 }
 
+// TestEmptyFile tests if CheckFile returns an error for an empty string
+// as Filename. It it returns nil for the empty string as Filename,
+// the test fails.
 func TestEmptyFile(t *testing.T) {
+	// If CheckFile of the empty string as Filename returns nil, then the test fails
 	if err := CheckFile(""); err == nil {
 		t.Error(tserr.NilFailed("CheckFile"))
 	}
