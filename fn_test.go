@@ -47,7 +47,7 @@ func TestEmptyDir(t *testing.T) {
 }
 
 // TestEmptyFile tests if CheckFile returns an error for an empty string
-// as Filename. It it returns nil for the empty string as Filename,
+// as Filename. If it returns nil for the empty string as Filename,
 // the test fails.
 func TestEmptyFile(t *testing.T) {
 	// If CheckFile of the empty string as Filename returns nil, then the test fails
@@ -56,8 +56,12 @@ func TestEmptyFile(t *testing.T) {
 	}
 }
 
+// TestDir1 tests if CheckDir returns nil for a newly created temporary directory.
+// If it returns an error, the test fails.
 func TestDir1(t *testing.T) {
+	// Create a temporary directory with name d
 	d := tmpDir(t)
+	// Test fails, if Checkdir returns an error for d
 	if err := CheckDir(d); err != nil {
 		t.Error(tserr.Return(&tserr.ReturnArgs{
 			Op:     fmt.Sprintf("CheckDir of %v", d),
@@ -65,24 +69,18 @@ func TestDir1(t *testing.T) {
 			Want:   "nil",
 		}))
 	}
+	// Remove the temporary directory d
 	rm(t, d)
 }
 
-func TestFile1(t *testing.T) {
-	f := tmpFile(t)
-	if err := CheckFile(f); err != nil {
-		t.Error(tserr.Return(&tserr.ReturnArgs{
-			Op:     fmt.Sprintf("CheckFile of %v", f),
-			Actual: fmt.Sprint(err),
-			Want:   "nil",
-		}))
-	}
-	rm(t, f)
-}
-
+// TestDir2 tests if CheckDir returns nil for a newly created temporary directory
+// which is removed before the check. If it returns an error, the test fails.
 func TestDir2(t *testing.T) {
+	// Create a temporary directory with name d
 	d := tmpDir(t)
+	// Remove the temporary directory d before the check
 	rm(t, d)
+	// Test fails, if Checkdir returns an error for d
 	if err := CheckDir(d); err != nil {
 		t.Error(tserr.Return(&tserr.ReturnArgs{
 			Op:     fmt.Sprintf("CheckDir of %v", d),
@@ -92,9 +90,31 @@ func TestDir2(t *testing.T) {
 	}
 }
 
-func TestFile2(t *testing.T) {
+// TestFile1 tests if CheckFile returns nil for a newly created temporary file.
+// If it returns an error, the test fails.
+func TestFile1(t *testing.T) {
+	// Create a temporary file with name f
 	f := tmpFile(t)
+	// Test fails, if CheckFile returns an error for f
+	if err := CheckFile(f); err != nil {
+		t.Error(tserr.Return(&tserr.ReturnArgs{
+			Op:     fmt.Sprintf("CheckFile of %v", f),
+			Actual: fmt.Sprint(err),
+			Want:   "nil",
+		}))
+	}
+	// Remove the temporary file f
 	rm(t, f)
+}
+
+// TestFile2 tests if CheckFile returns nil for a newly created temporary file
+// which is removed before the check. If it returns an error, the test fails.
+func TestFile2(t *testing.T) {
+	// Create a temporary file with name f
+	f := tmpFile(t)
+	// Remove the temporary file f before the check
+	rm(t, f)
+	// Test fails, if CheckFile returns an error for f
 	if err := CheckFile(f); err != nil {
 		t.Error(tserr.Return(&tserr.ReturnArgs{
 			Op:     fmt.Sprintf("CheckFile of %v", f),
@@ -104,8 +124,12 @@ func TestFile2(t *testing.T) {
 	}
 }
 
+// TestDir3 checks if CheckDir returns an error when it receives
+// a temporary file. If it returns nil, the test fails.
 func TestDir3(t *testing.T) {
+	// Create a temporary file with name f
 	f := tmpFile(t)
+	// TODO comment...
 	if CheckDir(Directory(f)) == nil {
 		t.Error(tserr.NilFailed(fmt.Sprintf("CheckDir of file %v", f)))
 	}
