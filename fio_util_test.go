@@ -1,18 +1,19 @@
 package tsfio
 
+// Import standard library packages and tserr
 import (
-	"os"
-	"testing"
-	"time"
+	"os"      // os
+	"testing" // testing
+	"time"    // time
 
-	"github.com/thorstenrie/tserr"
+	"github.com/thorstenrie/tserr" // tserr
 )
 
 // The testcases use these tokens
 const (
-	testprefix string   = "tsfio_*" // mostly used as prefix for temporary files or directories
-	testcase   string   = "test"    // test string
-	testfile   Filename = "test"    // test Filename
+	testprefix string   = "tsfio_*"  // mostly used as prefix for temporary files or directories
+	testcase   string   = "test1234" // test string
+	testfile   Filename = "test1234" // test Filename
 )
 
 // tmpDir creates a new temporary directory in the default directory for temporary files

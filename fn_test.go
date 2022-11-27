@@ -1,11 +1,12 @@
 package tsfio
 
+// Import standard library packages and tserr
 import (
-	"fmt"
-	"os"
-	"testing"
+	"fmt"     // fmt
+	"os"      // os
+	"testing" // testing
 
-	"github.com/thorstenrie/tserr"
+	"github.com/thorstenrie/tserr" // tserr
 )
 
 // TestBlockedDir tests if CheckFile returns an error for all
@@ -124,37 +125,49 @@ func TestFile2(t *testing.T) {
 	}
 }
 
-// TestDir3 checks if CheckDir returns an error when it receives
+// TestDir3 tests if CheckDir returns an error when it receives
 // a temporary file. If it returns nil, the test fails.
 func TestDir3(t *testing.T) {
 	// Create a temporary file with name f
 	f := tmpFile(t)
-	// TODO comment...
+	// If CheckDir returns nil, the test fails
 	if CheckDir(Directory(f)) == nil {
 		t.Error(tserr.NilFailed(fmt.Sprintf("CheckDir of file %v", f)))
 	}
+	// Remove the temporary file f
 	rm(t, f)
 }
 
+// TestFile3 tests if CheckFile returns an error when it receives a
+// temporary directory. If it returns nil, the test fails.
 func TestFile3(t *testing.T) {
+	// Create a temporary directory with name d
 	d := tmpDir(t)
+	// If CheckFile returns nil, the test fails
 	if CheckFile(Filename(d)) == nil {
 		t.Error(tserr.NilFailed(fmt.Sprintf("CheckFile of directory %v", d)))
 	}
+	// Remove the temporary directory d
 	rm(t, d)
 }
 
+// TestSprintf tests if Sprintf formats according to the format specifier and
+// returns the resulting Filename or Directory. The test fails if not.
 func TestSprintf(t *testing.T) {
-	a := "tsfio_1234"
-	swant := os.TempDir() + string(os.PathSeparator) + a
-	d := Sprintf[Directory]("%v%v%v", os.TempDir(), string(os.PathSeparator), a)
-	f := Sprintf[Filename]("%v%v%v", os.TempDir(), string(os.PathSeparator), a)
+	// Wanted string swant
+	swant := os.TempDir() + string(os.PathSeparator) + testcase
+	// Use Sprintf for a Directory d
+	d := Sprintf[Directory]("%v%v%v", os.TempDir(), string(os.PathSeparator), testcase)
+	// Use Sprintf for a Filename f
+	f := Sprintf[Filename]("%v%v%v", os.TempDir(), string(os.PathSeparator), testcase)
+	// If d does not equal swant, the test fails
 	if Directory(swant) != d {
 		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{
 			X: swant,
 			Y: string(d),
 		}))
 	}
+	// If f does not equal swant, the test fails
 	if Filename(swant) != f {
 		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{
 			X: swant,

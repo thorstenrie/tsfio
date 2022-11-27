@@ -1,34 +1,56 @@
 package tsfio
 
+// Import standard library packages and tserr
 import (
-	"fmt"
-	"os"
-	"testing"
-	"time"
+	"fmt"     // fmt
+	"os"      // os
+	"testing" // testing
+	"time"    // time
 
-	"github.com/thorstenrie/tserr"
+	"github.com/thorstenrie/tserr" // tserr
 )
 
+// TestOpenFile1 tests OpenFile to open a existing temporary
+// file and to return *os.File. If OpenFile returns an error or if *os.File is nil,
+// the test fails.
 func TestOpenFile1(t *testing.T) {
 	testOpenFile(t, false)
 }
 
+// TestOpenFile2 tests OpenFile to open a new temporary file, not
+// existing yet and to return *os.File. If OpenFile returns an error or
+// if *os.File is nil, the test fails.
 func TestOpenFile2(t *testing.T) {
 	testOpenFile(t, true)
 }
 
+// testOpenFile is called by Test functions to test OpenFile. If r is true,
+// OpenFile opens a non-existing, new temporary file. If r is false,
+// OpenFile opens an existing temporary file. If OpenFile returns an error or
+// if *os.File is nil, the test fails.
 func testOpenFile(t *testing.T, r bool) {
+	// Create a temporary file with Filename fn
 	fn := tmpFile(t)
+	// If r is true, remove file fn
 	if r {
 		rm(t, fn)
 	}
+	// Open file fn
 	f, err := OpenFile(fn)
+	// If OpenFile returns an error, the test fails
 	if err != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(fn), Err: err}))
 	}
+	// If *os.File is nil, the test fails
+	if f == nil {
+		t.Error(tserr.Return(&tserr.ReturnArgs{Op: "OpenFile", Actual: "nil", Want: "*os.File"}))
+	}
+	// Close file fn
 	if e := CloseFile(f); e != nil {
+		// If CloseFile fails, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "CloseFile", Fn: string(fn), Err: e}))
 	}
+	// Remove file fn
 	rm(t, fn)
 }
 
