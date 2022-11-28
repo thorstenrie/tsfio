@@ -54,51 +54,83 @@ func testOpenFile(t *testing.T, r bool) {
 	rm(t, fn)
 }
 
+// TestOpenFileEmpty tests OpenFile in case it retrieves the empty string "".
+// The test fails if OpenFile returns nil instead of an error.
 func TestOpenFileEmpty(t *testing.T) {
+	// If OpenFile returns nil, the test fails
 	if _, err := OpenFile(""); err == nil {
 		t.Error(tserr.NilFailed("OpenFile"))
 	}
 }
 
+// TestCreateDirEmpty tests CreateDor in case it retrieves the empty string "".
+// The test fails if CreateDir returns nil instead of an error.
 func TestCreateDirEmpty(t *testing.T) {
+	// If CreateDir returns nil, the test fails
 	if err := CreateDir(""); err == nil {
 		t.Error(tserr.NilFailed("CreateDir"))
 	}
 }
 
+// TestCreateDir1 tests CreateDir to create a temporary directory. The test fails,
+// if CreateDir returns a Directory that does not exist or if CreateDir returns
+// an error.
 func TestCreateDir1(t *testing.T) {
+	// Create temporary Directory d
 	d := tmpDir(t)
+	// Remove temporary Directory d
 	rm(t, d)
+	// Create Directory d with CreateDir
 	if err := CreateDir(d); err != nil {
+		// If CreateDir returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "CreateDir", Fn: string(d), Err: err}))
 	}
+	// Retrieve FileInfo from Directory d with Stat
 	_, e := os.Stat(string(d))
+	// If Stat returns that d does not exist, the test fails
 	if os.IsNotExist(e) {
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "CreateDir", Fn: string(d), Err: e}))
 	}
+	// In case of any other error of Stat, the test fails
 	if e != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "FileInfo (Stat) of", Fn: string(d), Err: e}))
 	}
+	// No error occurred, remove Directory d
 	rm(t, d)
 }
 
+// TestCreateDir2 tests if CreateDir returns nil, in case it retrieves
+// a Directory d which already exists. If CreateDir returns an error,
+// the test fails.
 func TestCreateDir2(t *testing.T) {
+	// Create temporary Directory d
 	d := tmpDir(t)
+	// Call CreateDir with Directory d, which already exists
 	if err := CreateDir(d); err != nil {
+		// If CreateDir returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "CreateDir", Fn: string(d), Err: err}))
 	}
+	// No error occurred, remove Directory d
 	rm(t, d)
 }
 
+// TestCloseFileNil tests if CloseFile returns nil, in case it retrieves nil.
+// If CloseFile returns nil, the test fails.
 func TestCloseFileNil(t *testing.T) {
+	// If CloseFile returns nil, the test fails
 	if err := CloseFile(nil); err == nil {
 		t.Error(tserr.NilFailed("CloseFile"))
 	}
 }
 
+// TestCloseFile tests CloseFile closing a temporary file. If CloseFile
+// returns an error, the test fails.
 func TestCloseFile(t *testing.T) {
+	// Create temporary file fn
 	fn := tmpFile(t)
+	// Open file fn and get *os.File f
 	f, e := OpenFile(fn)
+	// If OpenFile returns an error, the test fails
 	if e != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "OpenFile",
@@ -106,19 +138,28 @@ func TestCloseFile(t *testing.T) {
 			Err: e,
 		}))
 	}
+	// Close file f with CloseFile
 	if err := CloseFile(f); err != nil {
+		// If ClosFile returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "CloseFile",
 			Fn:  f.Name(),
 			Err: err,
 		}))
 	}
+	// No error occurred, remove temporary file fn
 	rm(t, fn)
 }
 
+// TestCloseFileErr tests if CloseFile returns an error in case
+// it is called for a file already closed. The test fails if
+// CloseFile returns nil.
 func TestCloseFileErr(t *testing.T) {
+	// Create temporary file fn
 	fn := tmpFile(t)
+	// Open file fn and get *os.File f
 	f, e := OpenFile(fn)
+	// If OpenFile returns an error, the test fails
 	if e != nil {
 		t.Fatal(tserr.Op(&tserr.OpArgs{
 			Op:  "OpenFile",
@@ -126,10 +167,14 @@ func TestCloseFileErr(t *testing.T) {
 			Err: e,
 		}))
 	}
+	// Close f
 	f.Close()
+	// Close file f using CloseFile
 	if err := CloseFile(f); err == nil {
+		// If CloseFile returns nil, the test fails
 		t.Error(tserr.NilFailed("CloseFile"))
 	}
+	// No error occurred, remove fn
 	rm(t, fn)
 }
 
