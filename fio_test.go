@@ -10,7 +10,7 @@ import (
 	"github.com/thorstenrie/tserr" // tserr
 )
 
-// TestOpenFile1 tests OpenFile to open a existing temporary
+// TestOpenFile1 tests OpenFile to open an existing temporary
 // file and to return *os.File. If OpenFile returns an error or if *os.File is nil,
 // the test fails.
 func TestOpenFile1(t *testing.T) {
@@ -95,7 +95,7 @@ func TestCreateDir1(t *testing.T) {
 	if e != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "FileInfo (Stat) of", Fn: string(d), Err: e}))
 	}
-	// No error occurred, remove Directory d
+	// Remove Directory d
 	rm(t, d)
 }
 
@@ -110,7 +110,7 @@ func TestCreateDir2(t *testing.T) {
 		// If CreateDir returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "CreateDir", Fn: string(d), Err: err}))
 	}
-	// No error occurred, remove Directory d
+	// Remove Directory d
 	rm(t, d)
 }
 
@@ -147,7 +147,7 @@ func TestCloseFile(t *testing.T) {
 			Err: err,
 		}))
 	}
-	// No error occurred, remove temporary file fn
+	// Remove temporary file fn
 	rm(t, fn)
 }
 
@@ -174,15 +174,23 @@ func TestCloseFileErr(t *testing.T) {
 		// If CloseFile returns nil, the test fails
 		t.Error(tserr.NilFailed("CloseFile"))
 	}
-	// No error occurred, remove fn
+	// Remove file fn
 	rm(t, fn)
 }
 
+// TestWriteStr tests WriteStr to write two times a string into a new temporary file.
+// If the contents of the temporary file does not equal the expected contents,
+// the test fails.
 func TestWriteStr(t *testing.T) {
+	// Define how often WriteStr is called in rep
 	rep := 2
+	// Set expected test string seq to empty string
 	seq := ""
+	// Create temporary file fn
 	fn := tmpFile(t)
+	// Iterate as defined by rep
 	for i := 0; i < rep; i++ {
+		// If writing the testcase string to fn returns an error, the test fails
 		if e := WriteStr(fn, testcase); e != nil {
 			t.Error(tserr.Op(&tserr.OpArgs{
 				Op:  fmt.Sprintf("WriteStr %v to file", testcase),
@@ -190,54 +198,88 @@ func TestWriteStr(t *testing.T) {
 				Err: e,
 			}))
 		}
+		// Extend expected test string by the testcase string
 		seq = seq + testcase
 	}
+	// Read file fn in b
 	b, err := os.ReadFile(string(fn))
+	// Remove file fn
+	rm(t, fn)
+	// If ReadFile returns an error, the test fails
 	if err != nil {
 		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
 	}
+	// If actual b does not match expected seq, the test fails
 	if string(b) != seq {
 		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: seq}))
 	}
-	rm(t, fn)
 }
 
-func TestWriteStrErr(t *testing.T) {
+// TestWriteStrEmpty tests WriteStr to return an error for an empty filename.
+// If WriteStr returns nil, the test fails.
+func TestWriteStrEmpty(t *testing.T) {
+	// Write string testcase to empty filename
 	if e := WriteStr("", testcase); e == nil {
+		// If WriteStr returns nil, the test fails
 		t.Error(tserr.NilFailed("WriteStr"))
 	}
 }
 
+// TestTouchFileEmpty tests TouchFile to return an error for an empty filename.
+// If TouchFile returns nil, the test fails.
 func TestTouchFileEmpty(t *testing.T) {
+	// Touch file with empty filename
 	if e := TouchFile(""); e == nil {
+		// If Touchfile returns nil, the test fails
 		t.Error(tserr.NilFailed("TouchFile"))
 	}
 }
 
+// TestTouchFile1 tests TouchFile to touch an existing temporary
+// file. If TouchFile returns an error or if the modification time
+// of the temporary file is not later than before, the test fails.
 func TestTouchFile1(t *testing.T) {
 	testTouchFile(t, false)
 }
 
+// TestTouchFile2 tests TouchFile to touch a temporary
+// file which was created and removed. If TouchFile returns
+// an error or if the modification time of the temporary file
+// is not later than before, the test fails.
 func TestTouchFile2(t *testing.T) {
 	testTouchFile(t, true)
 }
 
+// testTouchFile is called by Test functions to test TouchFile. If r is true,
+// TouchFile opens a non-existing, new temporary file. If r is false,
+// TouchFile opens a temporary file, which was created and removed.
+// If TouchFile returns an error or if the modification time of the temporary file
+// is not later than before, the test fails.
 func testTouchFile(t *testing.T, r bool) {
+	// Create temporary file fn
 	fn := tmpFile(t)
+	// Retrieve modification time of fn in t1
 	t1 := modTime(t, fn)
+	// Remove fn if r is true
 	if r {
 		rm(t, fn)
 	}
+	// Pause for at least one second
 	time.Sleep(time.Second)
+	// Touch file fn
 	if e := TouchFile(fn); e != nil {
+		// If TouchFile returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "TouchFile",
 			Fn:  string(fn),
 			Err: e,
 		}))
 	}
+	// Retrieve modification time of fn in t2
 	t2 := modTime(t, fn)
+	// Calculate duration d = t2 - t1
 	d := t2.Sub(t1)
+	// If rounded d is smaller than a second, the test fails
 	if d.Round(time.Second) < time.Second {
 		t.Error(tserr.Higher(&tserr.HigherArgs{
 			Var:        "t2 - t1",
@@ -245,6 +287,7 @@ func testTouchFile(t *testing.T, r bool) {
 			LowerBound: int64(time.Second),
 		}))
 	}
+	// Remove file fn
 	rm(t, fn)
 }
 
