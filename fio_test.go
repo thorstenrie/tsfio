@@ -215,6 +215,38 @@ func TestWriteStr(t *testing.T) {
 	}
 }
 
+// TestWriteSingleStr tests WriteSingleStr to write two times a string into a temporary file.
+// If the contents of the temporary file does not equal the expected contents, the test fails.
+func TestWriteSingleStr(t *testing.T) {
+	// Define how often WriteSingleStr is called in rep
+	rep := 2
+	// Create temporary file fn
+	fn := tmpFile(t)
+	// Iterate as defined by rep
+	for i := 0; i < rep; i++ {
+		// If writing the testcase string to fn returns an error, the test fails
+		if e := WriteSingleStr(fn, testcase); e != nil {
+			t.Error(tserr.Op(&tserr.OpArgs{
+				Op:  fmt.Sprintf("WriteSingleStr %v to file", testcase),
+				Fn:  string(fn),
+				Err: e,
+			}))
+		}
+	}
+	// Read file fn in b
+	b, err := os.ReadFile(string(fn))
+	// Remove file fn
+	rm(t, fn)
+	// If ReadFile returns an error, the test fails
+	if err != nil {
+		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
+	}
+	// If actual b does not match expected seq, the test fails
+	if string(b) != testcase {
+		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: testcase}))
+	}
+}
+
 // TestWriteStrEmpty tests WriteStr to return an error for an empty filename.
 // If WriteStr returns nil, the test fails.
 func TestWriteStrEmpty(t *testing.T) {
@@ -222,6 +254,16 @@ func TestWriteStrEmpty(t *testing.T) {
 	if e := WriteStr("", testcase); e == nil {
 		// If WriteStr returns nil, the test fails
 		t.Error(tserr.NilFailed("WriteStr"))
+	}
+}
+
+// TestWriteSingleStrErr tests WriteSingleStr to return an error for an empty filename.
+// If WriteSingleStr returns nil, the test fails.
+func TestWriteSingleStrErr(t *testing.T) {
+	// Write string testcase to empty filename
+	if e := WriteSingleStr("", testcase); e == nil {
+		// If WriteSingleStr returns nil, the test fails
+		t.Error(tserr.NilFailed("WriteSingleStr"))
 	}
 }
 
@@ -291,102 +333,125 @@ func testTouchFile(t *testing.T, r bool) {
 	rm(t, fn)
 }
 
-func TestWriteSingleStr(t *testing.T) {
-	rep := 2
-	seq := ""
-	fn := tmpFile(t)
-	for i := 0; i < rep; i++ {
-		if e := WriteSingleStr(fn, testcase); e != nil {
-			t.Error(tserr.Op(&tserr.OpArgs{
-				Op:  fmt.Sprintf("WriteSingleStr %v to file", testcase),
-				Fn:  string(fn),
-				Err: e,
-			}))
-		}
-		seq = seq + testcase
-	}
-	b, err := os.ReadFile(string(fn))
-	if err != nil {
-		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
-	}
-	if string(b) != testcase {
-		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: testcase}))
-	}
-	rm(t, fn)
-}
-
-func TestWriteSingleStrErr(t *testing.T) {
-	if e := WriteSingleStr("", testcase); e == nil {
-		t.Error(tserr.NilFailed("WriteSingleStr"))
-	}
-}
-
+// TestReadFile tests ReadFile to read from a temporary file. If the returned
+// contents of the temporary file does not match the expected contents,
+// the test fails.
 func TestReadFile(t *testing.T) {
+	// Create temporary file fn
 	fn := tmpFile(t)
+	// Write string testcase to file fn by calling WriteStr
 	if e := WriteStr(fn, testcase); e != nil {
+		// If WriteStr returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  fmt.Sprintf("WriteStr %v to file", testcase),
 			Fn:  string(fn),
 			Err: e,
 		}))
 	}
+	// Read fn in b
 	b, err := ReadFile(fn)
+	// Remove temporary file fn
+	rm(t, fn)
+	// If ReadFile returns an error, the test fails
 	if err != nil {
 		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: err}))
 	}
+	// If b does not match testcase, the test fails
 	if string(b) != testcase {
 		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: testcase}))
 	}
-	rm(t, fn)
 }
 
-func TestReadFileErr2(t *testing.T) {
+// TestReadFileEmpty tests ReadFile to return an error for an empty filename.
+// If ReadFile returns nil, the test fails.
+func TestReadFileEmpty(t *testing.T) {
+	// Read file with empty Filename
+	if _, e := ReadFile(""); e == nil {
+		// If ReadFile returns nil, the test fails
+		t.Error(tserr.NilFailed("ReadFile"))
+	}
+}
+
+// TestReadFileErr tests ReadFile to return an error when reading a file
+// which does not exist. If ReadFile returns nil, the test fails.
+func TestReadFileErr(t *testing.T) {
+	// Create temporary file fn
 	fn := tmpFile(t)
+	// Write string testcase to fn
 	if e := WriteStr(fn, testcase); e != nil {
+		// If WriteStr returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  fmt.Sprintf("WriteStr %v to file", testcase),
 			Fn:  string(fn),
 			Err: e,
 		}))
 	}
+	// Remove file fn
 	rm(t, fn)
+	// Read from file fn
 	_, err := ReadFile(fn)
+	// If ReadFile returns nil, the test fails
 	if err == nil {
 		t.Error(tserr.NilFailed("ReadFile"))
 	}
 }
 
-func TestReadFileErr1(t *testing.T) {
-	if _, e := ReadFile(""); e == nil {
-		t.Error(tserr.NilFailed("ReadFile"))
-	}
-}
-
+// TestAppendFileNil tests AppendFile to return an error if retrieving a nil pointer.
+// If AppendFile returns nil, the test fails.
 func TestAppendFileNil(t *testing.T) {
+	// Call AppendFile with a nil pointer
 	if e := AppendFile(nil); e == nil {
+		// If AppendFile returns nil, the test fails
 		t.Error(tserr.NilFailed("AppendFile"))
 	}
 }
 
-func TestAppendFileEmpty1(t *testing.T) {
+// TestAppendFileEmptyA tests AppendFile to return an error if Append argument fileA is
+// an empty string. If AppendFile returns nil, the test fails.
+func TestAppendFileEmptyA(t *testing.T) {
+	// Create temporary file fn
 	fn := tmpFile(t)
+	// Call AppendFile with an empty string as fileA and fn as fileI
 	if e := AppendFile(&Append{fileA: "", fileI: fn}); e == nil {
+		// If AppendFile returns nil, the test fails
 		t.Error(tserr.NilFailed("AppendFile"))
 	}
+	// Remove temporary file fn
 	rm(t, fn)
 }
 
-func TestAppendFileEmpty2(t *testing.T) {
+// TestAppendFileEmptyI tests AppendFile to return an error if Append argument fileI is
+// an empty string. If AppendFile returns nil, the test fails.
+func TestAppendFileEmptyI(t *testing.T) {
+	// Create temporary file fn
 	fn := tmpFile(t)
+	// Call AppendFile with an empty string as fileI and fn as fileA
 	if e := AppendFile(&Append{fileI: "", fileA: fn}); e == nil {
+		// If AppendFile returns nil, the test fails
 		t.Error(tserr.NilFailed("AppendFile"))
 	}
+	// Remove temporary file fn
 	rm(t, fn)
 }
 
+// TestAppendFileEmptyIA tests AppendFile to return an error if Append arguments fileI and fileA
+// are both an empty string. If AppendFile returns nil, the test fails.
+func TestAppendFileEmptyIA(t *testing.T) {
+	// Call AppendFile with an empty string as fileI and fileA
+	if e := AppendFile(&Append{fileI: "", fileA: ""}); e == nil {
+		// If AppendFile returns nil, the test fails
+		t.Error(tserr.NilFailed("AppendFile"))
+	}
+}
+
+// TestAppendFile tests AppendFile to append a temporary file to another temporary file.
+// If the resulting file does not match the expected contents, the test fails.
 func TestAppendFile(t *testing.T) {
+	// Create two temporary files in fn
 	fn := [2]Filename{tmpFile(t), tmpFile(t)}
+	// Write testcase string to each temporary file in fn
 	for _, i := range fn {
+		// If WriteStr returns an error, the test fails
 		if e := WriteStr(i, testcase); e != nil {
 			t.Error(tserr.Op(&tserr.OpArgs{
 				Op:  fmt.Sprintf("WriteStr %v to file", testcase),
@@ -395,14 +460,22 @@ func TestAppendFile(t *testing.T) {
 			}))
 		}
 	}
+	// Append fn[1] to fn[0] in fn[0]
 	if e := AppendFile(&Append{fileA: fn[0], fileI: fn[1]}); e != nil {
+		// If AppendFile returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  fmt.Sprintf("AppendFile %v to file", fn[1]),
 			Fn:  string(fn[0]),
 			Err: e,
 		}))
 	}
+	// Read contents of fn[0] in b with os.ReadFile
 	b, err := os.ReadFile(string(fn[0]))
+	// Remove all files of fn
+	for _, i := range fn {
+		rm(t, i)
+	}
+	// If os.ReadFile returns an error, the test fails
 	if err != nil {
 		t.Fatal(tserr.Op(&tserr.OpArgs{
 			Op:  "ReadFile",
@@ -410,11 +483,9 @@ func TestAppendFile(t *testing.T) {
 			Err: err,
 		}))
 	}
+	// If b does not match the expected string, the test fails
 	if string(b) != testcase+testcase {
 		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: testcase + testcase}))
-	}
-	for _, i := range fn {
-		rm(t, i)
 	}
 }
 
