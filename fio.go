@@ -4,6 +4,7 @@
 // functions for file input output operations, e.g., appending one file to another file.
 // Also, all file input output operations on Linux and Windows system directories or
 // files are blocked (see inval_unix.go and inval_win.go) and an error is returned.
+// All operations expect a directory or a regular file, return an error otherwise.
 // Default flags and file mode is used when opening files, creating files or directories
 // and when writing to files (with exceptions documented in the function descriptions)
 //

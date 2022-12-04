@@ -15,7 +15,7 @@ type fio interface {
 	Filename | Directory
 }
 
-// A Filename is the name of a file and may contain its path
+// A Filename is the name of a regular file and may contain its path
 type Filename string
 
 // A Directory is the name of a directory and may contain its path
@@ -57,26 +57,28 @@ func checkWrapper[T fio](f T, dir bool) error {
 	// Retrieve FileInfo of f
 	i, err := os.Stat(string(f))
 	// Set w to file or directory
-	w := "file"
+	w := "regular file"
 	if dir {
 		w = "directory"
 	}
 	// If Stat returns no error, then check if expected type matches type of f
 	if err == nil {
-		if i.IsDir() == dir {
+		// Return nil, if expected type matches
+		if i.IsDir() && dir {
 			return nil
 		}
+		if i.Mode().IsRegular() && !dir {
+			return nil
+		}
+		// Return an error otherwise
 		return tserr.TypeNotMatching(&tserr.TypeNotMatchingArgs{Act: string(f), Want: w})
-
-	} else {
-		// If Stat returns an error reporting f does not exist, return nil
-		if os.IsNotExist(err) {
-			return nil
-			// If Stat returns any other error, return the error
-		}
-		return tserr.Check(&tserr.CheckArgs{F: string(f), Err: err})
-
 	}
+	// If Stat returns an error reporting f does not exist, return nil
+	if os.IsNotExist(err) {
+		return nil
+	}
+	// If Stat returns any other error, return the error
+	return tserr.Check(&tserr.CheckArgs{F: string(f), Err: err})
 }
 
 // checkInval if f contains blocked directories or equals a blocked filename.
