@@ -65,17 +65,17 @@ func checkWrapper[T fio](f T, dir bool) error {
 	if err == nil {
 		if i.IsDir() == dir {
 			return nil
-		} else {
-			return tserr.TypeNotMatching(&tserr.TypeNotMatchingArgs{Act: string(f), Want: w})
 		}
+		return tserr.TypeNotMatching(&tserr.TypeNotMatchingArgs{Act: string(f), Want: w})
+
 	} else {
 		// If Stat returns an error reporting f does not exist, return nil
 		if os.IsNotExist(err) {
 			return nil
 			// If Stat returns any other error, return the error
-		} else {
-			return tserr.Check(&tserr.CheckArgs{F: string(f), Err: err})
 		}
+		return tserr.Check(&tserr.CheckArgs{F: string(f), Err: err})
+
 	}
 }
 
