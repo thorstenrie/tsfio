@@ -489,27 +489,46 @@ func TestAppendFile(t *testing.T) {
 	}
 }
 
+// TestExistsFileEmpty tests ExistsFile to return an error for an empty string as filename.
+// If ExistsFile returns the error to be nil, the test fails.
 func TestExistsFileEmpty(t *testing.T) {
+	// Call ExistsFile for an empty string as filename
 	_, e := ExistsFile("")
+	// If ExistsFile returns the error to be nil, the test fails
 	if e == nil {
 		t.Error(tserr.NilFailed("ExistsFile"))
 	}
 }
 
+// TestExistsFile1 tests ExistsFile for a non-existing file.
+// If ExistsFile returns an error or if ExistsFile returns true,
+// the test fails.
 func TestExistsFile1(t *testing.T) {
-	testExistsFileWrapper(t, true)
+	testExistsFile(t, true)
 }
 
+// TestExistsFile2 tests ExistsFile for an existing temporary file.
+// If ExistsFile returns an error or if ExistsFile returns false,
+// the test fails.
 func TestExistsFile2(t *testing.T) {
-	testExistsFileWrapper(t, false)
+	testExistsFile(t, false)
 }
 
-func testExistsFileWrapper(t *testing.T, r bool) {
+// testExistsFile is called by Test functions to test ExistsFile. If r is true,
+// ExistsFile is tested for a non-existing, removed file. If r is false,
+// ExistsFile is tested for an existing temporary file. If ExistsFile returns
+// an error or if the actual result of ExistsFile does not match the expected
+// result, the test fails.
+func testExistsFile(t *testing.T, r bool) {
+	// Create a temporary file fn
 	fn := tmpFile(t)
+	// Remove fn, if r is true
 	if r {
 		rm(t, fn)
 	}
+	// Call ExistsFile for fn
 	b, e := ExistsFile(fn)
+	// If ExistsFile returns an error, the test fails
 	if e != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "ExistsFile",
@@ -517,6 +536,8 @@ func testExistsFileWrapper(t *testing.T, r bool) {
 			Err: e,
 		}))
 	}
+	// If the actual result of ExistsFile does not match the expected result,
+	// the test fails
 	if b == r {
 		t.Error(tserr.Return(&tserr.ReturnArgs{
 			Op:     "ExistsFile",
@@ -524,27 +545,40 @@ func testExistsFileWrapper(t *testing.T, r bool) {
 			Want:   fmt.Sprintf("%t", !b),
 		}))
 	}
+	// Remove fn, if r is true
 	if !r {
 		rm(t, fn)
 	}
 }
 
+// TestRemoveFileEmpty tests RemoveFile to return an error for an empty string as filename.
+// If RemoveFile returns nil, the test fails.
 func TestRemoveFileEmpty(t *testing.T) {
+	// Call RemoveFile for an empty string as filename
 	if err := RemoveFile(""); err == nil {
+		// If RemoveFile returns nil, the test fails
 		t.Error(tserr.NilFailed("RemoveFile"))
 	}
 }
 
+// TestRemoveFile1 tests RemoveFile to remove an existing temporary file.
+// If RemoveFile returns an error or the temporary file still exists after
+// calling RemoveFile, the test fails.
 func TestRemoveFile1(t *testing.T) {
+	// Create the temporary file fn
 	fn := tmpFile(t)
+	// Remove fn with RemoveFile
 	if e := RemoveFile(fn); e != nil {
+		// If RemoveFile returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "RemoveFile",
 			Fn:  string(fn),
 			Err: e,
 		}))
 	}
+	// Check if fn still exists with ExistsFile
 	b, err := ExistsFile(fn)
+	// If ExistsFile returns an error, the test fails
 	if err != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "ExistsFile",
@@ -552,25 +586,38 @@ func TestRemoveFile1(t *testing.T) {
 			Err: err,
 		}))
 	}
+	// If fn still exists, the test fails
 	if b {
 		t.Error(tserr.Return(&tserr.ReturnArgs{
 			Op:     "ExistsFile",
 			Actual: fmt.Sprintf("%t", b),
 			Want:   fmt.Sprintf("%t", !b),
 		}))
+		// Remove file fn
+		rm(t, fn)
 	}
 }
 
+// TestRemoveFile2 tests RemoveFile for an non-existing file.
+// If RemoveFile returns nil, the test fails.
 func TestRemoveFile2(t *testing.T) {
+	// Create the temporary file fn
 	fn := tmpFile(t)
+	// Remove the temporary file fn
 	rm(t, fn)
+	// Call RemoveFile for fn
 	if e := RemoveFile(fn); e == nil {
+		// If RemoveFile returns nil, the test fails
 		t.Error(tserr.NilFailed("RemoveFile"))
 	}
 }
 
+// TestResetFileEmpty tests ResetFile with an empty string as filename.
+// If ResetFiles returns nil, it fails.
 func TestResetFileEmpty(t *testing.T) {
+	// Call ResetFile with an empty string as filename
 	if err := ResetFile(""); err == nil {
+		// If ResetFile returns nil, the test fails
 		t.Error(tserr.NilFailed("ResetFile"))
 	}
 }
@@ -583,20 +630,39 @@ func TestResetFile2(t *testing.T) {
 	testResetFile(t, true)
 }
 
+// testResetFile is called by Test functions to test ResetFile. If r is true,
+// ResetFile is tested for a non-existing, removed file. If r is false,
+// ResetFile is tested for an existing temporary file. If ResetFile returns
+// an error, if FileInfo of the tested file fails, or if the tested file has
+// a size greater than zero, the test fails.
 func testResetFile(t *testing.T, r bool) {
+	// Create the temporary file fn
 	fn := tmpFile(t)
-	WriteSingleStr(fn, testcase)
+	// Write single string testcase to fn
+	if err := WriteSingleStr(fn, testcase); err != nil {
+		// If WriteSingleStr returns an error, the test fails
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  "WriteSingleStr",
+			Fn:  string(fn),
+			Err: err,
+		}))
+	}
+	// Remove file fn, if r is true
 	if r {
 		rm(t, fn)
 	}
+	// Reset file fn
 	if err := ResetFile(fn); err != nil {
+		// If ResetFile returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "ResetFile",
 			Fn:  string(fn),
 			Err: err,
 		}))
 	}
+	// Retrieve FileInfo fi from fn with os.Stat
 	fi, e := os.Stat(string(fn))
+	// If os.Stat returns an error, the test fails
 	if e != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "FileInfo (Stat) of",
@@ -604,6 +670,7 @@ func testResetFile(t *testing.T, r bool) {
 			Err: e,
 		}))
 	}
+	// If fn has a size greater than zero, the test fails
 	if fi.Size() > 0 {
 		t.Error(tserr.Equal(&tserr.EqualArgs{
 			Var:    fmt.Sprintf("Size of %v", fn),
@@ -611,5 +678,6 @@ func testResetFile(t *testing.T, r bool) {
 			Want:   0,
 		}))
 	}
+	// Remove file fn
 	rm(t, fn)
 }
