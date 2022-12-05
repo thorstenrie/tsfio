@@ -412,7 +412,7 @@ func TestAppendFileEmptyA(t *testing.T) {
 	// Create temporary file fn
 	fn := tmpFile(t)
 	// Call AppendFile with an empty string as fileA and fn as fileI
-	if e := AppendFile(&Append{fileA: "", fileI: fn}); e == nil {
+	if e := AppendFile(&Append{FileA: "", FileI: fn}); e == nil {
 		// If AppendFile returns nil, the test fails
 		t.Error(tserr.NilFailed("AppendFile"))
 	}
@@ -426,7 +426,7 @@ func TestAppendFileEmptyI(t *testing.T) {
 	// Create temporary file fn
 	fn := tmpFile(t)
 	// Call AppendFile with an empty string as fileI and fn as fileA
-	if e := AppendFile(&Append{fileI: "", fileA: fn}); e == nil {
+	if e := AppendFile(&Append{FileI: "", FileA: fn}); e == nil {
 		// If AppendFile returns nil, the test fails
 		t.Error(tserr.NilFailed("AppendFile"))
 	}
@@ -438,7 +438,7 @@ func TestAppendFileEmptyI(t *testing.T) {
 // are both an empty string. If AppendFile returns nil, the test fails.
 func TestAppendFileEmptyIA(t *testing.T) {
 	// Call AppendFile with an empty string as fileI and fileA
-	if e := AppendFile(&Append{fileI: "", fileA: ""}); e == nil {
+	if e := AppendFile(&Append{FileI: "", FileA: ""}); e == nil {
 		// If AppendFile returns nil, the test fails
 		t.Error(tserr.NilFailed("AppendFile"))
 	}
@@ -461,7 +461,7 @@ func TestAppendFile(t *testing.T) {
 		}
 	}
 	// Append fn[1] to fn[0] in fn[0]
-	if e := AppendFile(&Append{fileA: fn[0], fileI: fn[1]}); e != nil {
+	if e := AppendFile(&Append{FileA: fn[0], FileI: fn[1]}); e != nil {
 		// If AppendFile returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  fmt.Sprintf("AppendFile %v to file", fn[1]),

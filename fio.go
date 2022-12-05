@@ -185,8 +185,8 @@ func ReadFile(f Filename) ([]byte, error) {
 // Append holds filename fileA, the file to be extended by contents from file I,
 // and filename fileI, which is the input file and will be appended to fileA.
 type Append struct {
-	fileA Filename // fileA to be extended
-	fileI Filename // fileI holds the contents to be appended to fileA
+	FileA Filename // fileA to be extended
+	FileI Filename // fileI holds the contents to be appended to fileA
 }
 
 // AppendFile appends a file to another file. It receives a pointer to struct
@@ -202,35 +202,35 @@ func AppendFile(a *Append) error {
 		return fmt.Errorf("nil pointer")
 	}
 	// Return an error in case fileA contains a blocked directory or filename
-	if e := CheckFile(a.fileA); e != nil {
-		return tserr.Check(&tserr.CheckArgs{F: string(a.fileA), Err: e})
+	if e := CheckFile(a.FileA); e != nil {
+		return tserr.Check(&tserr.CheckArgs{F: string(a.FileA), Err: e})
 	}
 	// Return an error in case fileI contains a blocked directory or filename
-	if e := CheckFile(a.fileI); e != nil {
-		return tserr.Check(&tserr.CheckArgs{F: string(a.fileI), Err: e})
+	if e := CheckFile(a.FileI); e != nil {
+		return tserr.Check(&tserr.CheckArgs{F: string(a.FileI), Err: e})
 	}
 	// Open fileA. If it does not exist, then create fileA as empty file.
-	f, erro := OpenFile(a.fileA)
+	f, erro := OpenFile(a.FileA)
 	// Return error, if any
 	if erro != nil {
-		return tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(a.fileA), Err: erro})
+		return tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(a.FileA), Err: erro})
 	}
 	// Read contents of fileI
-	out, errr := ReadFile(a.fileI)
+	out, errr := ReadFile(a.FileI)
 	// Return error, if any
 	if errr != nil {
-		return tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(a.fileI), Err: errr})
+		return tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(a.FileI), Err: errr})
 	}
 	// Write contents of fileI to fileA
 	if _, e := f.Write(out); e != nil {
 		// If Write filas, close fileA and return error
 		f.Close()
-		return tserr.Op(&tserr.OpArgs{Op: fmt.Sprintf("append file %v to", a.fileI), Fn: string(a.fileA), Err: e})
+		return tserr.Op(&tserr.OpArgs{Op: fmt.Sprintf("append file %v to", a.FileI), Fn: string(a.FileA), Err: e})
 	}
 	// Close fileA
 	if e := f.Close(); e != nil {
 		// If Close fails, return error
-		return tserr.Op(&tserr.OpArgs{Op: "Close", Fn: string(a.fileA), Err: e})
+		return tserr.Op(&tserr.OpArgs{Op: "Close", Fn: string(a.FileA), Err: e})
 	}
 	// No error occurred, return nil
 	return nil
