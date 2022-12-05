@@ -2,7 +2,7 @@
 //
 // The tsfio package is a supplement to the standard library and supplies additional
 // functions for file input output operations, e.g., appending one file to another file.
-// Also, all file input output operations on Linux and Windows system directories or
+// Also, file input output operations on Linux and Windows system directories or
 // files are blocked (see inval_unix.go and inval_win.go) and an error is returned.
 // All operations expect a directory or a regular file, return an error otherwise.
 // Default flags and file mode is used when opening files, creating files or directories
@@ -104,6 +104,28 @@ func WriteStr(fn Filename, s string) error {
 	return nil
 }
 
+// WriteSingleStr writes a single string s to file fn. If fn exists, it is
+// truncated to size zero first. If it does not exist, it is created. It
+// returns an error, if any.
+func WriteSingleStr(fn Filename, s string) error {
+	// Return an error in case fn contains a blocked directory or filename
+	if e := CheckFile(fn); e != nil {
+		return tserr.Check(&tserr.CheckArgs{F: string(fn), Err: e})
+	}
+	// Truncate fn to size zero with ResetFile
+	if e := ResetFile(fn); e != nil {
+		// Return error if ResetFile fails
+		return tserr.Op(&tserr.OpArgs{Op: "ResetFile", Fn: string(fn), Err: e})
+	}
+	// Write string s to fn with WriteStr
+	if e := WriteStr(fn, s); e != nil {
+		// Return error if WriteStr fails
+		return tserr.Op(&tserr.OpArgs{Op: fmt.Sprintf("write string %v to", s), Fn: string(fn), Err: e})
+	}
+	// No error occurred, return nil
+	return nil
+}
+
 // TouchFile updates the access and modification times of filename fn to the
 // current time. If fn does not exist, it is created as an empty file. It returns
 // an error, if any.
@@ -140,28 +162,6 @@ func TouchFile(fn Filename) error {
 		}
 	}
 	// No error occurred and return nil
-	return nil
-}
-
-// WriteSingleStr writes a single string s to file fn. If fn exists, it is
-// truncated to size zero first. If it does not exist, it is created. It
-// returns an error, if any.
-func WriteSingleStr(fn Filename, s string) error {
-	// Return an error in case fn contains a blocked directory or filename
-	if e := CheckFile(fn); e != nil {
-		return tserr.Check(&tserr.CheckArgs{F: string(fn), Err: e})
-	}
-	// Truncate fn to size zero with ResetFile
-	if e := ResetFile(fn); e != nil {
-		// Return error if ResetFile fails
-		return tserr.Op(&tserr.OpArgs{Op: "ResetFile", Fn: string(fn), Err: e})
-	}
-	// Write string s to fn with WriteStr
-	if e := WriteStr(fn, s); e != nil {
-		// Return error if WriteStr fails
-		return tserr.Op(&tserr.OpArgs{Op: fmt.Sprintf("write string %v to", s), Fn: string(fn), Err: e})
-	}
-	// No error occurred, return nil
 	return nil
 }
 
@@ -285,23 +285,6 @@ func RemoveFile(f Filename) error {
 	return nil
 }
 
-// CreateDir creates a directory named d with any necessary parents. If d already exists as
-// directory, it does nothing and returns nil. It returns an error, if there is any.
-func CreateDir(d Directory) error {
-	// Return an error in case d contains a blocked directory or filename
-	if e := CheckDir(d); e != nil {
-		return tserr.Check(&tserr.CheckArgs{F: string(d), Err: e})
-	}
-	// Create directory named d with any necessary parents
-	err := os.MkdirAll(string(d), dperm)
-	if err != nil {
-		// Return an error, if MKdirAll fails
-		return tserr.Op(&tserr.OpArgs{Op: "make directory", Fn: string(d), Err: err})
-	}
-	// No error occurred, return nil
-	return nil
-}
-
 // ResetFile truncates fn to size zero. If fn does not exist, it is created as empty file.
 // It returns an error, if there is any.
 func ResetFile(fn Filename) error {
@@ -327,6 +310,23 @@ func ResetFile(fn Filename) error {
 	if err != nil {
 		// Return error if Truncate fails
 		return tserr.Op(&tserr.OpArgs{Op: "Truncate", Fn: string(fn), Err: err})
+	}
+	// No error occurred, return nil
+	return nil
+}
+
+// CreateDir creates a directory named d with any necessary parents. If d already exists as
+// directory, it does nothing and returns nil. It returns an error, if there is any.
+func CreateDir(d Directory) error {
+	// Return an error in case d contains a blocked directory or filename
+	if e := CheckDir(d); e != nil {
+		return tserr.Check(&tserr.CheckArgs{F: string(d), Err: e})
+	}
+	// Create directory named d with any necessary parents
+	err := os.MkdirAll(string(d), dperm)
+	if err != nil {
+		// Return an error, if MKdirAll fails
+		return tserr.Op(&tserr.OpArgs{Op: "make directory", Fn: string(d), Err: err})
 	}
 	// No error occurred, return nil
 	return nil
