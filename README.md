@@ -15,7 +15,7 @@
 ![GitHub Top Language](https://img.shields.io/github/languages/top/thorstenrie/tsfio)
 ![GitHub](https://img.shields.io/github/license/thorstenrie/tsfio)
 
-[Go](https://go.dev/) package with a [simple](https://en.wikipedia.org/wiki/KISS_principle) API for file input output. The tsfio package is a supplement to the standard library and supplies additional functions for file input output operations, e.g., appending one file to another file.
+[Go](https://go.dev/) package with a [simple](https://en.wikipedia.org/wiki/KISS_principle) API for file input output. It is a supplement to the standard library and supplies additional functions for file input output operations, e.g., appending one file to another file.
 
 - **Simple**: Without configuration, just function calls, and default flags are used
 - **Resilient**: File input output operations on Linux and Windows system directories or files are blocked (see [inval_unix.go](https://github.com/thorstenrie/tsfio/blob/main/inval_unix.go) and [inval_win.go](https://github.com/thorstenrie/tsfio/blob/main/inval_win.go))
