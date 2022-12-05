@@ -58,7 +58,7 @@ func OpenFile(fn Filename) (*os.File, error) {
 	if err != nil {
 		return nil, tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(fn), Err: err})
 	}
-	// If successfull, return file for file input output
+	// If successful, return file for file input output
 	return f, nil
 }
 
@@ -245,7 +245,7 @@ func ExistsFile(fn Filename) (bool, error) {
 	}
 	// Retrieve FileInfo of fn
 	_, err := os.Stat(string(fn))
-	// If Stat is sucessfull return true and error as nil
+	// If Stat is sucessful return true and error as nil
 	if err == nil {
 		return true, nil
 	}
