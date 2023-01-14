@@ -245,7 +245,7 @@ func ExistsFile(fn Filename) (bool, error) {
 	}
 	// Retrieve FileInfo of fn
 	_, err := os.Stat(string(fn))
-	// If Stat is sucessful return true and error as nil
+	// If Stat is successful return true and error as nil
 	if err == nil {
 		return true, nil
 	}
