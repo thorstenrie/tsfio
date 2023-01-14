@@ -18,8 +18,8 @@
 [Go](https://go.dev/) package with a [simple](https://en.wikipedia.org/wiki/KISS_principle) API for file input output. It is a supplement to the standard library and supplies additional functions for file input output operations, e.g., appending one file to another file.
 
 - **Simple**: Without configuration, just function calls, and default flags are used
-- **Resilient**: File input output operations on Linux and Windows system directories or files are blocked (see [inval_unix.go](https://github.com/thorstenrie/tsfio/blob/main/inval_unix.go) and [inval_win.go](https://github.com/thorstenrie/tsfio/blob/main/inval_win.go))
-- **Tested**: Unit tests with high [code coverage](https://gocover.io/github.com/thorstenrie/tsfio)
+- **Resilient**: File input output on Linux and Windows system directories or files are blocked (see [inval_unix.go](https://github.com/thorstenrie/tsfio/blob/main/inval_unix.go) and [inval_win.go](https://github.com/thorstenrie/tsfio/blob/main/inval_win.go))
+- **Tested**: Unit tests with a high [code coverage](https://gocover.io/github.com/thorstenrie/tsfio)
 - **Dependencies**: Only depends on the [Go Standard Library](https://pkg.go.dev/std) and [tserr](https://github.com/thorstenrie/tserr)
 
 ## Defaults
@@ -74,6 +74,7 @@ func ExistsFile(fn Filename) (bool, error)
 func RemoveFile(f Filename) error
 func ResetFile(fn Filename) error
 func CreateDir(d Directory) error
+func FileSize(fn Filename) (int64, error)
 ```
 
 ## Example
@@ -112,6 +113,9 @@ func main() {
 	tsfio.AppendFile(&tsfio.Append{FileA: fn1, FileI: fn2})
 	c, _ = tsfio.ReadFile(fn1)
 	fmt.Println(string(c))
+
+	fs, _ = tsfio.FileSize(fn1)
+	fmt.Println(fs)
 
 	tsfio.WriteSingleStr(fn1, "foo")
 	c, _ = tsfio.ReadFile(fn1)

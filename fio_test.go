@@ -681,3 +681,92 @@ func testResetFile(t *testing.T, r bool) {
 	// Remove file fn
 	rm(t, fn)
 }
+
+// TestFileSizeZero tests FileSize to return 0 for empty files. If FileSize returns
+// an error or if FileSize of the tested file is non-zero for an empty temporary file
+// the test fails.
+func TestFileSizeZero(t *testing.T) {
+	// Create temporary file fn
+	fn := tmpFile(t)
+	// Retrieve file size fs for fn
+	fs, err := FileSize(fn)
+	// If FileSize returns an error, the test fails
+	if err != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  "FileSize",
+			Fn:  string(fn),
+			Err: err,
+		}))
+	}
+	// If file size fs is not zero, the test fails
+	if fs != 0 {
+		t.Error(tserr.Equal(&tserr.EqualArgs{
+			Var:    fmt.Sprintf("FileSize of %v", fn),
+			Actual: fs,
+			Want:   0,
+		}))
+	}
+	// Remove temporary file fn
+	rm(t, fn)
+}
+
+// TestFileSize tests FileSize to return a non-zero value for a non-empty temporary file.
+// If FileSize returns an error or if FileSize of the tested file is zero or negative
+// the test fails.
+func TestFileSize(t *testing.T) {
+	// Create temporary file fn
+	fn := tmpFile(t)
+	// Write testcase to file fn
+	if e := WriteStr(fn, testcase); e != nil {
+		// If WriteStr returns an error, the test fails
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  "WriteStr",
+			Fn:  string(fn),
+			Err: e,
+		}))
+	}
+	// Retrieve file size fs for fn
+	fs, err := FileSize(fn)
+	// If FileSize returns an error, the test fails
+	if err != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  "FileSize",
+			Fn:  string(fn),
+			Err: err,
+		}))
+	}
+	// If fs is zero or negative, the test fails
+	if fs <= 0 {
+		t.Error(tserr.Higher(&tserr.HigherArgs{
+			Var:        fmt.Sprintf("FileSize of %v", fn),
+			Actual:     fs,
+			LowerBound: 1,
+		}))
+	}
+	// Remove temporary file fn
+	rm(t, fn)
+}
+
+// TestFileSize tests FileSize to return 0 and an error for a temporary directory.
+// If FileSize returns nil or if FileSize of the tested directory does not return zero
+// the test fails.
+func TestFileSizeDir(t *testing.T) {
+	// Create a temporary directory d
+	d := tmpDir(t)
+	// Retrieve file size of d
+	fs, err := FileSize(Filename(d))
+	// If FileSize returns nil instead of an error, the test fails
+	if err == nil {
+		t.Error(tserr.NilFailed(fmt.Sprintf("FileSize of directory %v", d)))
+	}
+	// If FileSize returns a non-zero size, the test fails
+	if fs != 0 {
+		t.Error(tserr.Equal(&tserr.EqualArgs{
+			Var:    fmt.Sprintf("FileSize of directory %v", d),
+			Actual: fs,
+			Want:   0,
+		}))
+	}
+	// Remove temporary directory d
+	rm(t, d)
+}

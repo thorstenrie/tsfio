@@ -331,3 +331,19 @@ func CreateDir(d Directory) error {
 	// No error occurred, return nil
 	return nil
 }
+
+// FileSize returns the length in bytes for the regular file fn. If fn is a blocked filename,
+// a directory or if FileInfo for fn cannot be retrieved, it returns 0 and an error.
+func FileSize(fn Filename) (int64, error) {
+	// Return an error in case fn contains a blocked directory or filename
+	if err := CheckFile(fn); err != nil {
+		return 0, tserr.Check(&tserr.CheckArgs{F: string(fn), Err: err})
+	}
+	// Retrieve FileInfo of fn
+	fi, e := os.Stat(string(fn))
+	if e != nil {
+		// For any error of Stat return 0 and the error
+		return 0, tserr.Op(&tserr.OpArgs{Op: "FileInfo (Stat) of", Fn: string(fn), Err: e})
+	}
+	return fi.Size(), nil
+}
