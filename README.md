@@ -114,7 +114,7 @@ func main() {
 	c, _ = tsfio.ReadFile(fn1)
 	fmt.Println(string(c))
 
-	fs, _ = tsfio.FileSize(fn1)
+	fs, _ := tsfio.FileSize(fn1)
 	fmt.Println(fs)
 
 	tsfio.WriteSingleStr(fn1, "foo")
