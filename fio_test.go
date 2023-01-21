@@ -1,3 +1,6 @@
+// Copyright (c) 2023 thorstenrie.
+// All Rights Reserved. Use is governed with GNU Affero General Public Licence v3.0
+// that can be found in the LICENSE file.
 package tsfio
 
 // Import standard library packages and tserr
@@ -29,6 +32,10 @@ func TestOpenFile2(t *testing.T) {
 // OpenFile opens an existing temporary file. If OpenFile returns an error or
 // if *os.File is nil, the test fails.
 func testOpenFile(t *testing.T, r bool) {
+	// Panic if t is nil
+	if t == nil {
+		panic("nil pointer")
+	}
 	// Create a temporary file with Filename fn
 	fn := tmpFile(t)
 	// If r is true, remove file fn
@@ -298,6 +305,10 @@ func TestTouchFile2(t *testing.T) {
 // If TouchFile returns an error or if the modification time of the temporary file
 // is not later than before, the test fails.
 func testTouchFile(t *testing.T, r bool) {
+	// Panic if t is nil
+	if t == nil {
+		panic("nil pointer")
+	}
 	// Create temporary file fn
 	fn := tmpFile(t)
 	// Retrieve modification time of fn in t1
@@ -520,6 +531,10 @@ func TestExistsFile2(t *testing.T) {
 // an error or if the actual result of ExistsFile does not match the expected
 // result, the test fails.
 func testExistsFile(t *testing.T, r bool) {
+	// Panic if t is nil
+	if t == nil {
+		panic("nil pointer")
+	}
 	// Create a temporary file fn
 	fn := tmpFile(t)
 	// Remove fn, if r is true
@@ -636,6 +651,10 @@ func TestResetFile2(t *testing.T) {
 // an error, if FileInfo of the tested file fails, or if the tested file has
 // a size greater than zero, the test fails.
 func testResetFile(t *testing.T, r bool) {
+	// Panic if t is nil
+	if t == nil {
+		panic("nil pointer")
+	}
 	// Create the temporary file fn
 	fn := tmpFile(t)
 	// Write single string testcase to fn

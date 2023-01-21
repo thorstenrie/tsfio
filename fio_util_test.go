@@ -1,3 +1,6 @@
+// Copyright (c) 2023 thorstenrie.
+// All Rights Reserved. Use is governed with GNU Affero General Public Licence v3.0
+// that can be found in the LICENSE file.
 package tsfio
 
 // Import standard library packages and tserr
@@ -20,6 +23,10 @@ const (
 // with the prefix testprefix and a random string to the end. In case of an error
 // the execution stops.
 func tmpDir(t *testing.T) Directory {
+	// Panic if t is nil
+	if t == nil {
+		panic("nil pointer")
+	}
 	// Create the temporary directory
 	d, err := os.MkdirTemp("", testprefix)
 	// Stop execution in case of an error
@@ -34,6 +41,10 @@ func tmpDir(t *testing.T) Directory {
 // with the prefix testprefix and a random string to the end. In case of an error
 // the execution stops.
 func tmpFile(t *testing.T) Filename {
+	// Panic if t is nil
+	if t == nil {
+		panic("nil pointer")
+	}
 	// Create the temporary file
 	f, err := os.CreateTemp("", testprefix)
 	// Stop execution in case of an error
@@ -47,6 +58,10 @@ func tmpFile(t *testing.T) Filename {
 // rm removes file named Filename a or empty directory Directory a. In case of an error
 // execution stops.
 func rm[T fio](t *testing.T, a T) {
+	// Panic if t is nil
+	if t == nil {
+		panic("nil pointer")
+	}
 	// Remove file or empty directory
 	if err := os.Remove(string(a)); err != nil {
 		// Stop execution in case of an error
@@ -57,6 +72,10 @@ func rm[T fio](t *testing.T, a T) {
 // modTime returns the modification time of the file with Filename fn.
 // In case of an error, it stops execution.
 func modTime(t *testing.T, fn Filename) time.Time {
+	// Panic if t is nil
+	if t == nil {
+		panic("nil pointer")
+	}
 	// Retrieve the FileInfo structure from fn in fi
 	fi, err := os.Stat(string(fn))
 	// Stop execution in case of an error
