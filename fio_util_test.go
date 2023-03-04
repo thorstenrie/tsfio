@@ -51,8 +51,15 @@ func tmpFile(t *testing.T) Filename {
 	if err != nil {
 		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "create temp file", Fn: f.Name(), Err: err}))
 	}
+	// Retrieve the name of the temporary file
+	fn := Filename(f.Name())
+	// Close the temporary file
+	if e := f.Close(); e != nil {
+		// The test fails if Close returns an error
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "close temp file", Fn: string(fn), Err: e}))
+	}
 	// Return the temporary Filename
-	return Filename(f.Name())
+	return fn
 }
 
 // rm removes file named Filename a or empty directory Directory a. In case of an error
