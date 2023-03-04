@@ -1,5 +1,5 @@
 module github.com/thorstenrie/tsfio
 
-go 1.19
+go 1.20
 
-require github.com/thorstenrie/tserr v1.5.1
+require github.com/thorstenrie/tserr v1.7.0
