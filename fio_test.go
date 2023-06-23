@@ -1,9 +1,9 @@
 // Copyright (c) 2023 thorstenrie.
 // All Rights Reserved. Use is governed with GNU Affero General Public Licence v3.0
 // that can be found in the LICENSE file.
-package tsfio
+package tsfio_test
 
-// Import standard library packages and tserr
+// Import standard library packages as well as tserr and tsfio
 import (
 	"fmt"     // fmt
 	"os"      // os
@@ -11,6 +11,7 @@ import (
 	"time"    // time
 
 	"github.com/thorstenrie/tserr" // tserr
+	"github.com/thorstenrie/tsfio" // tsfio
 )
 
 // TestOpenFile1 tests OpenFile to open an existing temporary
@@ -43,7 +44,7 @@ func testOpenFile(t *testing.T, r bool) {
 		rm(t, fn)
 	}
 	// Open file fn
-	f, err := OpenFile(fn)
+	f, err := tsfio.OpenFile(fn)
 	// If OpenFile returns an error, the test fails
 	if err != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "OpenFile", Fn: string(fn), Err: err}))
@@ -53,7 +54,7 @@ func testOpenFile(t *testing.T, r bool) {
 		t.Error(tserr.Return(&tserr.ReturnArgs{Op: "OpenFile", Actual: "nil", Want: "*os.File"}))
 	}
 	// Close file fn
-	if e := CloseFile(f); e != nil {
+	if e := tsfio.CloseFile(f); e != nil {
 		// If CloseFile fails, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "CloseFile", Fn: string(fn), Err: e}))
 	}
@@ -65,7 +66,7 @@ func testOpenFile(t *testing.T, r bool) {
 // The test fails if OpenFile returns nil instead of an error.
 func TestOpenFileEmpty(t *testing.T) {
 	// If OpenFile returns nil, the test fails
-	if _, err := OpenFile(""); err == nil {
+	if _, err := tsfio.OpenFile(""); err == nil {
 		t.Error(tserr.NilFailed("OpenFile"))
 	}
 }
@@ -74,7 +75,7 @@ func TestOpenFileEmpty(t *testing.T) {
 // The test fails if CreateDir returns nil instead of an error.
 func TestCreateDirEmpty(t *testing.T) {
 	// If CreateDir returns nil, the test fails
-	if err := CreateDir(""); err == nil {
+	if err := tsfio.CreateDir(""); err == nil {
 		t.Error(tserr.NilFailed("CreateDir"))
 	}
 }
@@ -88,7 +89,7 @@ func TestCreateDir1(t *testing.T) {
 	// Remove temporary Directory d
 	rm(t, d)
 	// Create Directory d with CreateDir
-	if err := CreateDir(d); err != nil {
+	if err := tsfio.CreateDir(d); err != nil {
 		// If CreateDir returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "CreateDir", Fn: string(d), Err: err}))
 	}
@@ -113,7 +114,7 @@ func TestCreateDir2(t *testing.T) {
 	// Create temporary Directory d
 	d := tmpDir(t)
 	// Call CreateDir with Directory d, which already exists
-	if err := CreateDir(d); err != nil {
+	if err := tsfio.CreateDir(d); err != nil {
 		// If CreateDir returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "CreateDir", Fn: string(d), Err: err}))
 	}
@@ -125,7 +126,7 @@ func TestCreateDir2(t *testing.T) {
 // If CloseFile returns nil, the test fails.
 func TestCloseFileNil(t *testing.T) {
 	// If CloseFile returns nil, the test fails
-	if err := CloseFile(nil); err == nil {
+	if err := tsfio.CloseFile(nil); err == nil {
 		t.Error(tserr.NilFailed("CloseFile"))
 	}
 }
@@ -136,7 +137,7 @@ func TestCloseFile(t *testing.T) {
 	// Create temporary file fn
 	fn := tmpFile(t)
 	// Open file fn and get *os.File f
-	f, e := OpenFile(fn)
+	f, e := tsfio.OpenFile(fn)
 	// If OpenFile returns an error, the test fails
 	if e != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{
@@ -146,7 +147,7 @@ func TestCloseFile(t *testing.T) {
 		}))
 	}
 	// Close file f with CloseFile
-	if err := CloseFile(f); err != nil {
+	if err := tsfio.CloseFile(f); err != nil {
 		// If ClosFile returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "CloseFile",
@@ -165,7 +166,7 @@ func TestCloseFileErr(t *testing.T) {
 	// Create temporary file fn
 	fn := tmpFile(t)
 	// Open file fn and get *os.File f
-	f, e := OpenFile(fn)
+	f, e := tsfio.OpenFile(fn)
 	// If OpenFile returns an error, the test fails
 	if e != nil {
 		t.Fatal(tserr.Op(&tserr.OpArgs{
@@ -177,7 +178,7 @@ func TestCloseFileErr(t *testing.T) {
 	// Close f
 	f.Close()
 	// Close file f using CloseFile
-	if err := CloseFile(f); err == nil {
+	if err := tsfio.CloseFile(f); err == nil {
 		// If CloseFile returns nil, the test fails
 		t.Error(tserr.NilFailed("CloseFile"))
 	}
@@ -198,7 +199,7 @@ func TestWriteStr(t *testing.T) {
 	// Iterate as defined by rep
 	for i := 0; i < rep; i++ {
 		// If writing the testcase string to fn returns an error, the test fails
-		if e := WriteStr(fn, testcase); e != nil {
+		if e := tsfio.WriteStr(fn, testcase); e != nil {
 			t.Error(tserr.Op(&tserr.OpArgs{
 				Op:  fmt.Sprintf("WriteStr %v to file", testcase),
 				Fn:  string(fn),
@@ -232,7 +233,7 @@ func TestWriteSingleStr(t *testing.T) {
 	// Iterate as defined by rep
 	for i := 0; i < rep; i++ {
 		// If writing the testcase string to fn returns an error, the test fails
-		if e := WriteSingleStr(fn, testcase); e != nil {
+		if e := tsfio.WriteSingleStr(fn, testcase); e != nil {
 			t.Error(tserr.Op(&tserr.OpArgs{
 				Op:  fmt.Sprintf("WriteSingleStr %v to file", testcase),
 				Fn:  string(fn),
@@ -258,7 +259,7 @@ func TestWriteSingleStr(t *testing.T) {
 // If WriteStr returns nil, the test fails.
 func TestWriteStrEmpty(t *testing.T) {
 	// Write string testcase to empty filename
-	if e := WriteStr("", testcase); e == nil {
+	if e := tsfio.WriteStr("", testcase); e == nil {
 		// If WriteStr returns nil, the test fails
 		t.Error(tserr.NilFailed("WriteStr"))
 	}
@@ -268,7 +269,7 @@ func TestWriteStrEmpty(t *testing.T) {
 // If WriteSingleStr returns nil, the test fails.
 func TestWriteSingleStrErr(t *testing.T) {
 	// Write string testcase to empty filename
-	if e := WriteSingleStr("", testcase); e == nil {
+	if e := tsfio.WriteSingleStr("", testcase); e == nil {
 		// If WriteSingleStr returns nil, the test fails
 		t.Error(tserr.NilFailed("WriteSingleStr"))
 	}
@@ -278,7 +279,7 @@ func TestWriteSingleStrErr(t *testing.T) {
 // If TouchFile returns nil, the test fails.
 func TestTouchFileEmpty(t *testing.T) {
 	// Touch file with empty filename
-	if e := TouchFile(""); e == nil {
+	if e := tsfio.TouchFile(""); e == nil {
 		// If Touchfile returns nil, the test fails
 		t.Error(tserr.NilFailed("TouchFile"))
 	}
@@ -320,7 +321,7 @@ func testTouchFile(t *testing.T, r bool) {
 	// Pause for at least one second
 	time.Sleep(time.Second)
 	// Touch file fn
-	if e := TouchFile(fn); e != nil {
+	if e := tsfio.TouchFile(fn); e != nil {
 		// If TouchFile returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "TouchFile",
@@ -351,7 +352,7 @@ func TestReadFile(t *testing.T) {
 	// Create temporary file fn
 	fn := tmpFile(t)
 	// Write string testcase to file fn by calling WriteStr
-	if e := WriteStr(fn, testcase); e != nil {
+	if e := tsfio.WriteStr(fn, testcase); e != nil {
 		// If WriteStr returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  fmt.Sprintf("WriteStr %v to file", testcase),
@@ -360,7 +361,7 @@ func TestReadFile(t *testing.T) {
 		}))
 	}
 	// Read fn in b
-	b, err := ReadFile(fn)
+	b, err := tsfio.ReadFile(fn)
 	// Remove temporary file fn
 	rm(t, fn)
 	// If ReadFile returns an error, the test fails
@@ -377,7 +378,7 @@ func TestReadFile(t *testing.T) {
 // If ReadFile returns nil, the test fails.
 func TestReadFileEmpty(t *testing.T) {
 	// Read file with empty Filename
-	if _, e := ReadFile(""); e == nil {
+	if _, e := tsfio.ReadFile(""); e == nil {
 		// If ReadFile returns nil, the test fails
 		t.Error(tserr.NilFailed("ReadFile"))
 	}
@@ -389,7 +390,7 @@ func TestReadFileErr(t *testing.T) {
 	// Create temporary file fn
 	fn := tmpFile(t)
 	// Write string testcase to fn
-	if e := WriteStr(fn, testcase); e != nil {
+	if e := tsfio.WriteStr(fn, testcase); e != nil {
 		// If WriteStr returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  fmt.Sprintf("WriteStr %v to file", testcase),
@@ -400,7 +401,7 @@ func TestReadFileErr(t *testing.T) {
 	// Remove file fn
 	rm(t, fn)
 	// Read from file fn
-	_, err := ReadFile(fn)
+	_, err := tsfio.ReadFile(fn)
 	// If ReadFile returns nil, the test fails
 	if err == nil {
 		t.Error(tserr.NilFailed("ReadFile"))
@@ -411,7 +412,7 @@ func TestReadFileErr(t *testing.T) {
 // If AppendFile returns nil, the test fails.
 func TestAppendFileNil(t *testing.T) {
 	// Call AppendFile with a nil pointer
-	if e := AppendFile(nil); e == nil {
+	if e := tsfio.AppendFile(nil); e == nil {
 		// If AppendFile returns nil, the test fails
 		t.Error(tserr.NilFailed("AppendFile"))
 	}
@@ -423,7 +424,7 @@ func TestAppendFileEmptyA(t *testing.T) {
 	// Create temporary file fn
 	fn := tmpFile(t)
 	// Call AppendFile with an empty string as fileA and fn as fileI
-	if e := AppendFile(&Append{FileA: "", FileI: fn}); e == nil {
+	if e := tsfio.AppendFile(&tsfio.Append{FileA: "", FileI: fn}); e == nil {
 		// If AppendFile returns nil, the test fails
 		t.Error(tserr.NilFailed("AppendFile"))
 	}
@@ -437,7 +438,7 @@ func TestAppendFileEmptyI(t *testing.T) {
 	// Create temporary file fn
 	fn := tmpFile(t)
 	// Call AppendFile with an empty string as fileI and fn as fileA
-	if e := AppendFile(&Append{FileI: "", FileA: fn}); e == nil {
+	if e := tsfio.AppendFile(&tsfio.Append{FileI: "", FileA: fn}); e == nil {
 		// If AppendFile returns nil, the test fails
 		t.Error(tserr.NilFailed("AppendFile"))
 	}
@@ -449,7 +450,7 @@ func TestAppendFileEmptyI(t *testing.T) {
 // are both an empty string. If AppendFile returns nil, the test fails.
 func TestAppendFileEmptyIA(t *testing.T) {
 	// Call AppendFile with an empty string as fileI and fileA
-	if e := AppendFile(&Append{FileI: "", FileA: ""}); e == nil {
+	if e := tsfio.AppendFile(&tsfio.Append{FileI: "", FileA: ""}); e == nil {
 		// If AppendFile returns nil, the test fails
 		t.Error(tserr.NilFailed("AppendFile"))
 	}
@@ -459,11 +460,11 @@ func TestAppendFileEmptyIA(t *testing.T) {
 // If the resulting file does not match the expected contents, the test fails.
 func TestAppendFile(t *testing.T) {
 	// Create two temporary files in fn
-	fn := [2]Filename{tmpFile(t), tmpFile(t)}
+	fn := [2]tsfio.Filename{tmpFile(t), tmpFile(t)}
 	// Write testcase string to each temporary file in fn
 	for _, i := range fn {
 		// If WriteStr returns an error, the test fails
-		if e := WriteStr(i, testcase); e != nil {
+		if e := tsfio.WriteStr(i, testcase); e != nil {
 			t.Error(tserr.Op(&tserr.OpArgs{
 				Op:  fmt.Sprintf("WriteStr %v to file", testcase),
 				Fn:  string(i),
@@ -472,7 +473,7 @@ func TestAppendFile(t *testing.T) {
 		}
 	}
 	// Append fn[1] to fn[0] in fn[0]
-	if e := AppendFile(&Append{FileA: fn[0], FileI: fn[1]}); e != nil {
+	if e := tsfio.AppendFile(&tsfio.Append{FileA: fn[0], FileI: fn[1]}); e != nil {
 		// If AppendFile returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  fmt.Sprintf("AppendFile %v to file", fn[1]),
@@ -504,7 +505,7 @@ func TestAppendFile(t *testing.T) {
 // If ExistsFile returns the error to be nil, the test fails.
 func TestExistsFileEmpty(t *testing.T) {
 	// Call ExistsFile for an empty string as filename
-	_, e := ExistsFile("")
+	_, e := tsfio.ExistsFile("")
 	// If ExistsFile returns the error to be nil, the test fails
 	if e == nil {
 		t.Error(tserr.NilFailed("ExistsFile"))
@@ -542,7 +543,7 @@ func testExistsFile(t *testing.T, r bool) {
 		rm(t, fn)
 	}
 	// Call ExistsFile for fn
-	b, e := ExistsFile(fn)
+	b, e := tsfio.ExistsFile(fn)
 	// If ExistsFile returns an error, the test fails
 	if e != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{
@@ -570,7 +571,7 @@ func testExistsFile(t *testing.T, r bool) {
 // If RemoveFile returns nil, the test fails.
 func TestRemoveFileEmpty(t *testing.T) {
 	// Call RemoveFile for an empty string as filename
-	if err := RemoveFile(""); err == nil {
+	if err := tsfio.RemoveFile(""); err == nil {
 		// If RemoveFile returns nil, the test fails
 		t.Error(tserr.NilFailed("RemoveFile"))
 	}
@@ -583,7 +584,7 @@ func TestRemoveFile1(t *testing.T) {
 	// Create the temporary file fn
 	fn := tmpFile(t)
 	// Remove fn with RemoveFile
-	if e := RemoveFile(fn); e != nil {
+	if e := tsfio.RemoveFile(fn); e != nil {
 		// If RemoveFile returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "RemoveFile",
@@ -592,7 +593,7 @@ func TestRemoveFile1(t *testing.T) {
 		}))
 	}
 	// Check if fn still exists with ExistsFile
-	b, err := ExistsFile(fn)
+	b, err := tsfio.ExistsFile(fn)
 	// If ExistsFile returns an error, the test fails
 	if err != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{
@@ -621,7 +622,7 @@ func TestRemoveFile2(t *testing.T) {
 	// Remove the temporary file fn
 	rm(t, fn)
 	// Call RemoveFile for fn
-	if e := RemoveFile(fn); e == nil {
+	if e := tsfio.RemoveFile(fn); e == nil {
 		// If RemoveFile returns nil, the test fails
 		t.Error(tserr.NilFailed("RemoveFile"))
 	}
@@ -631,7 +632,7 @@ func TestRemoveFile2(t *testing.T) {
 // If ResetFiles returns nil, it fails.
 func TestResetFileEmpty(t *testing.T) {
 	// Call ResetFile with an empty string as filename
-	if err := ResetFile(""); err == nil {
+	if err := tsfio.ResetFile(""); err == nil {
 		// If ResetFile returns nil, the test fails
 		t.Error(tserr.NilFailed("ResetFile"))
 	}
@@ -658,7 +659,7 @@ func testResetFile(t *testing.T, r bool) {
 	// Create the temporary file fn
 	fn := tmpFile(t)
 	// Write single string testcase to fn
-	if err := WriteSingleStr(fn, testcase); err != nil {
+	if err := tsfio.WriteSingleStr(fn, testcase); err != nil {
 		// If WriteSingleStr returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "WriteSingleStr",
@@ -671,7 +672,7 @@ func testResetFile(t *testing.T, r bool) {
 		rm(t, fn)
 	}
 	// Reset file fn
-	if err := ResetFile(fn); err != nil {
+	if err := tsfio.ResetFile(fn); err != nil {
 		// If ResetFile returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "ResetFile",
@@ -708,7 +709,7 @@ func TestFileSizeZero(t *testing.T) {
 	// Create temporary file fn
 	fn := tmpFile(t)
 	// Retrieve file size fs for fn
-	fs, err := FileSize(fn)
+	fs, err := tsfio.FileSize(fn)
 	// If FileSize returns an error, the test fails
 	if err != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{
@@ -736,7 +737,7 @@ func TestFileSize(t *testing.T) {
 	// Create temporary file fn
 	fn := tmpFile(t)
 	// Write testcase to file fn
-	if e := WriteStr(fn, testcase); e != nil {
+	if e := tsfio.WriteStr(fn, testcase); e != nil {
 		// If WriteStr returns an error, the test fails
 		t.Error(tserr.Op(&tserr.OpArgs{
 			Op:  "WriteStr",
@@ -745,7 +746,7 @@ func TestFileSize(t *testing.T) {
 		}))
 	}
 	// Retrieve file size fs for fn
-	fs, err := FileSize(fn)
+	fs, err := tsfio.FileSize(fn)
 	// If FileSize returns an error, the test fails
 	if err != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{
@@ -773,7 +774,7 @@ func TestFileSizeDir(t *testing.T) {
 	// Create a temporary directory d
 	d := tmpDir(t)
 	// Retrieve file size of d
-	fs, err := FileSize(Filename(d))
+	fs, err := tsfio.FileSize(tsfio.Filename(d))
 	// If FileSize returns nil instead of an error, the test fails
 	if err == nil {
 		t.Error(tserr.NilFailed(fmt.Sprintf("FileSize of directory %v", d)))

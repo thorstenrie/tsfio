@@ -2,20 +2,20 @@
 
 package tsfio
 
-// Linux blocked Directories and Filenames
-// If a directory or their parents match invalDir,
+// Linux blocked Directories and Filenames.
+// If a directory or their parents match InvalDir,
 // tsfio functions will return an error. If a Filename
-// matches invalFile, tsfio functions will return an error.
+// matches InvalFile, tsfio functions will return an error.
 var (
 	// blocked directories
-	invalDir [4]Directory = [4]Directory{
+	InvalFilenvalDir [4]Directory = [4]Directory{
 		"/boot",
 		"/dev",
 		"/lost+found",
 		"/proc",
 	}
 	// blocked filenames
-	invalFile [14]Filename = [14]Filename{
+	InvalFile [14]Filename = [14]Filename{
 		"/",
 		"/bin",
 		"/etc",

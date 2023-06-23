@@ -1,15 +1,16 @@
 // Copyright (c) 2023 thorstenrie.
 // All Rights Reserved. Use is governed with GNU Affero General Public Licence v3.0
 // that can be found in the LICENSE file.
-package tsfio
+package tsfio_test
 
-// Import standard library packages and tserr
+// Import standard library packages as well as tserr and tsfio
 import (
 	"fmt"     // fmt
 	"os"      // os
 	"testing" // testing
 
 	"github.com/thorstenrie/tserr" // tserr
+	"github.com/thorstenrie/tsfio" // tsfio
 )
 
 // TestBlockedDir tests if CheckFile returns an error for all
@@ -17,11 +18,11 @@ import (
 // a blocked directory, the test fails.
 func TestBlockedDir(t *testing.T) {
 	// Iterate test over all directories in invalDir
-	for _, d := range invalDir {
+	for _, d := range tsfio.InvalDir {
 		// Create test Filename p containing the blocked directory
-		p := Filename(d) + Filename(os.PathSeparator) + testfile
+		p := tsfio.Filename(d) + tsfio.Filename(os.PathSeparator) + testfile
 		// If CheckFile returns nil, then the test fails
-		if CheckFile(p) == nil {
+		if tsfio.CheckFile(p) == nil {
 			t.Error(tserr.NilFailed(fmt.Sprintf("CheckFile of %v", d)))
 		}
 	}
@@ -32,9 +33,9 @@ func TestBlockedDir(t *testing.T) {
 // file, the test fails.
 func TestInvalFile(t *testing.T) {
 	// Iterate test over all files in invalFile
-	for _, d := range invalFile {
+	for _, d := range tsfio.InvalFile {
 		// If CheckFile returns nil, then the test fails
-		if CheckFile(d) == nil {
+		if tsfio.CheckFile(d) == nil {
 			t.Error(tserr.NilFailed(fmt.Sprintf("CheckFile of %v", d)))
 		}
 	}
@@ -45,7 +46,7 @@ func TestInvalFile(t *testing.T) {
 // the test fails.
 func TestEmptyDir(t *testing.T) {
 	// If CheckDir of the empty string as Directory returns nil, then the test fails
-	if err := CheckDir(""); err == nil {
+	if err := tsfio.CheckDir(""); err == nil {
 		t.Error(tserr.NilFailed("CheckDir"))
 	}
 }
@@ -55,7 +56,7 @@ func TestEmptyDir(t *testing.T) {
 // the test fails.
 func TestEmptyFile(t *testing.T) {
 	// If CheckFile of the empty string as Filename returns nil, then the test fails
-	if err := CheckFile(""); err == nil {
+	if err := tsfio.CheckFile(""); err == nil {
 		t.Error(tserr.NilFailed("CheckFile"))
 	}
 }
@@ -66,7 +67,7 @@ func TestDir1(t *testing.T) {
 	// Create a temporary directory with name d
 	d := tmpDir(t)
 	// Test fails, if Checkdir returns an error for d
-	if err := CheckDir(d); err != nil {
+	if err := tsfio.CheckDir(d); err != nil {
 		t.Error(tserr.Return(&tserr.ReturnArgs{
 			Op:     fmt.Sprintf("CheckDir of %v", d),
 			Actual: fmt.Sprint(err),
@@ -85,7 +86,7 @@ func TestDir2(t *testing.T) {
 	// Remove the temporary directory d before the check
 	rm(t, d)
 	// Test fails, if Checkdir returns an error for d
-	if err := CheckDir(d); err != nil {
+	if err := tsfio.CheckDir(d); err != nil {
 		t.Error(tserr.Return(&tserr.ReturnArgs{
 			Op:     fmt.Sprintf("CheckDir of %v", d),
 			Actual: fmt.Sprint(err),
@@ -100,7 +101,7 @@ func TestFile1(t *testing.T) {
 	// Create a temporary file with name f
 	f := tmpFile(t)
 	// Test fails, if CheckFile returns an error for f
-	if err := CheckFile(f); err != nil {
+	if err := tsfio.CheckFile(f); err != nil {
 		t.Error(tserr.Return(&tserr.ReturnArgs{
 			Op:     fmt.Sprintf("CheckFile of %v", f),
 			Actual: fmt.Sprint(err),
@@ -119,7 +120,7 @@ func TestFile2(t *testing.T) {
 	// Remove the temporary file f before the check
 	rm(t, f)
 	// Test fails, if CheckFile returns an error for f
-	if err := CheckFile(f); err != nil {
+	if err := tsfio.CheckFile(f); err != nil {
 		t.Error(tserr.Return(&tserr.ReturnArgs{
 			Op:     fmt.Sprintf("CheckFile of %v", f),
 			Actual: fmt.Sprint(err),
@@ -134,7 +135,7 @@ func TestDir3(t *testing.T) {
 	// Create a temporary file with name f
 	f := tmpFile(t)
 	// If CheckDir returns nil, the test fails
-	if CheckDir(Directory(f)) == nil {
+	if tsfio.CheckDir(tsfio.Directory(f)) == nil {
 		t.Error(tserr.NilFailed(fmt.Sprintf("CheckDir of file %v", f)))
 	}
 	// Remove the temporary file f
@@ -147,7 +148,7 @@ func TestFile3(t *testing.T) {
 	// Create a temporary directory with name d
 	d := tmpDir(t)
 	// If CheckFile returns nil, the test fails
-	if CheckFile(Filename(d)) == nil {
+	if tsfio.CheckFile(tsfio.Filename(d)) == nil {
 		t.Error(tserr.NilFailed(fmt.Sprintf("CheckFile of directory %v", d)))
 	}
 	// Remove the temporary directory d
@@ -160,18 +161,18 @@ func TestSprintf(t *testing.T) {
 	// Wanted string swant
 	swant := os.TempDir() + string(os.PathSeparator) + testcase
 	// Use Sprintf for a Directory d
-	d := Sprintf[Directory]("%v%v%v", os.TempDir(), string(os.PathSeparator), testcase)
+	d := tsfio.Sprintf[tsfio.Directory]("%v%v%v", os.TempDir(), string(os.PathSeparator), testcase)
 	// Use Sprintf for a Filename f
-	f := Sprintf[Filename]("%v%v%v", os.TempDir(), string(os.PathSeparator), testcase)
+	f := tsfio.Sprintf[tsfio.Filename]("%v%v%v", os.TempDir(), string(os.PathSeparator), testcase)
 	// If d does not equal swant, the test fails
-	if Directory(swant) != d {
+	if tsfio.Directory(swant) != d {
 		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{
 			X: swant,
 			Y: string(d),
 		}))
 	}
 	// If f does not equal swant, the test fails
-	if Filename(swant) != f {
+	if tsfio.Filename(swant) != f {
 		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{
 			X: swant,
 			Y: string(f),

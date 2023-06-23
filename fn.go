@@ -13,8 +13,8 @@ import (
 	"github.com/thorstenrie/tserr" //tserr
 )
 
-// Interface fio is constrained to type Filename and Directory
-type fio interface {
+// Interface Fio is constrained to type Filename and Directory
+type Fio interface {
 	Filename | Directory
 }
 
@@ -48,7 +48,7 @@ func CheckDir(d Directory) error {
 
 // checkWrapper performs checks on a file or directory using fio as type parameter.
 // It returns an error, if any check fails. Otherwise it returns nil.
-func checkWrapper[T fio](f T, dir bool) error {
+func checkWrapper[T Fio](f T, dir bool) error {
 	// Return an error if f is an empty string
 	if f == "" {
 		return tserr.Empty(string(f))
@@ -87,11 +87,11 @@ func checkWrapper[T fio](f T, dir bool) error {
 // checkInval if f contains blocked directories or equals a blocked filename.
 // In case of a match with a blocked directory or filename it returns an error,
 // otherwise nil.
-func checkInval[T fio](f T) error {
+func checkInval[T Fio](f T) error {
 	// Retrieve the shortest path name of f
 	fc := filepath.Clean(string(f))
 	// Iterate i over blocked filenames
-	for _, i := range invalFile {
+	for _, i := range InvalFile {
 		// Retrieve the shortest path name of i
 		ic := filepath.Clean(string(i))
 		// If the blocked filename and f match, then return an error
@@ -100,7 +100,7 @@ func checkInval[T fio](f T) error {
 		}
 	}
 	// Iterate i over blocked directories
-	for _, i := range invalDir {
+	for _, i := range InvalDir {
 		// Retrieve the shortest path name of i
 		ic := filepath.Clean(string(i))
 		// If f matches the blocked directory or one of its parents, then return an error
@@ -113,6 +113,6 @@ func checkInval[T fio](f T) error {
 }
 
 // Sprintf formats according to the format specifier and returns the resulting Filename or Directory
-func Sprintf[T fio](f string, a ...any) T {
+func Sprintf[T Fio](f string, a ...any) T {
 	return T(fmt.Sprintf(f, a...))
 }
