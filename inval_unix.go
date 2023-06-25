@@ -8,7 +8,7 @@ package tsfio
 // matches InvalFile, tsfio functions will return an error.
 var (
 	// blocked directories
-	InvalFilenvalDir [4]Directory = [4]Directory{
+	InvalDir [4]Directory = [4]Directory{
 		"/boot",
 		"/dev",
 		"/lost+found",

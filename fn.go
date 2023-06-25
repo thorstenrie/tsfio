@@ -10,7 +10,7 @@ import (
 	"path/filepath" // path/filepath
 	"strings"       // strings
 
-	"github.com/thorstenrie/tserr" //tserr
+	"github.com/thorstenrie/tserr" // tserr
 )
 
 // Interface Fio is constrained to type Filename and Directory
@@ -115,4 +115,23 @@ func checkInval[T Fio](f T) error {
 // Sprintf formats according to the format specifier and returns the resulting Filename or Directory
 func Sprintf[T Fio](f string, a ...any) T {
 	return T(fmt.Sprintf(f, a...))
+}
+
+// Path joins directory name d and a filename f into a single path p. It returns an empty string and an error if checks
+// on d, f and p fail. Path joins the path elements by using the Join function from the Go standard library package path/filepath.
+func Path(d Directory, f Filename) (Filename, error) {
+	// Return an error in case d contains a blocked directory or filename
+	if e := CheckDir(d); e != nil {
+		return "", tserr.Check(&tserr.CheckArgs{F: string(d), Err: e})
+	}
+	// Return an error in case f contains a blocked directory or filename
+	if e := CheckFile(f); e != nil {
+		return "", tserr.Check(&tserr.CheckArgs{F: string(f), Err: e})
+	}
+	p := Filename(filepath.Join(string(d), string(f)))
+	// Return an error in case p contains a blocked directory or filename
+	if e := CheckFile(p); e != nil {
+		return "", tserr.Check(&tserr.CheckArgs{F: string(p), Err: e})
+	}
+	return p, nil
 }

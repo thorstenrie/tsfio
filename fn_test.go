@@ -5,8 +5,9 @@ package tsfio_test
 
 // Import standard library packages as well as tserr and tsfio
 import (
-	"fmt"     // fmt
-	"os"      // os
+	"fmt" // fmt
+	"os"  // os
+	"path/filepath"
 	"testing" // testing
 
 	"github.com/thorstenrie/tserr" // tserr
@@ -177,5 +178,49 @@ func TestSprintf(t *testing.T) {
 			X: swant,
 			Y: string(f),
 		}))
+	}
+}
+
+func TestEmptyJoin(t *testing.T) {
+	p, e := tsfio.Path("", "")
+	if p != "" || e == nil {
+		t.Error(tserr.NilFailed("Path"))
+	}
+}
+
+func TestBlockedDirJoin(t *testing.T) {
+	if len(tsfio.InvalDir) == 0 {
+		t.Fatal(tserr.NilPtr())
+	}
+	d := tsfio.InvalDir[0]
+	f := testfile
+	p, e := tsfio.Path(d, f)
+	if p != "" || e == nil {
+		t.Error(tserr.NilFailed("Path"))
+	}
+}
+
+func TestBlockedFileJoin(t *testing.T) {
+	if len(tsfio.InvalFile) == 0 {
+		t.Fatal(tserr.NilPtr())
+	}
+	d := testdir
+	f := tsfio.InvalFile[0]
+	p, e := tsfio.Path(d, f)
+	if p != "" || e == nil {
+		t.Error(tserr.NilFailed("Path"))
+	}
+}
+
+func TestJoin(t *testing.T) {
+	d := testdir
+	f := testfile
+	p, e := tsfio.Path(d, f)
+	if e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "Path", Fn: fmt.Sprintf("%v,%v", d, f), Err: e}))
+	}
+	r := tsfio.Filename(filepath.Join(string(d), string(f)))
+	if p != r {
+		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(p), Y: string(r)}))
 	}
 }
