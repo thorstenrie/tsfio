@@ -85,7 +85,7 @@ func IsPrintable(a []string) (bool, error)
 func RuneToPrintable(r rune) string
 ```
 
-With golden file functions, golden files can be created and test cases evaluated
+With golden file functions, golden files can be created and test cases evaluated. Golden files can be used in unit tests. The expected output is stored in a golden file. The actual output data will be compared with the golden file. The test faisl if there is a difference in actual output and golden file.
 
 ```
 func GoldenFilePath(name string) (Filename, error)
