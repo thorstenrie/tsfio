@@ -19,7 +19,7 @@ import (
 // a blocked directory, the test fails.
 func TestBlockedDir(t *testing.T) {
 	// Iterate test over all directories in invalDir
-	for _, d := range tsfio.InvalDir {
+	for _, d := range tsfio.InvalDir() {
 		// Create test Filename p containing the blocked directory
 		p := tsfio.Filename(d) + tsfio.Filename(os.PathSeparator) + testfile
 		// If CheckFile returns nil, then the test fails
@@ -29,12 +29,12 @@ func TestBlockedDir(t *testing.T) {
 	}
 }
 
-// TestInvalFile tests if CheckFile returns an error for all
+// TestBlockedFile tests if CheckFile returns an error for all
 // blocked files in invalFile. If it returns nil for a blocked
 // file, the test fails.
-func TestInvalFile(t *testing.T) {
+func TestBlockedFile(t *testing.T) {
 	// Iterate test over all files in invalFile
-	for _, d := range tsfio.InvalFile {
+	for _, d := range tsfio.InvalFile() {
 		// If CheckFile returns nil, then the test fails
 		if tsfio.CheckFile(d) == nil {
 			t.Error(tserr.NilFailed(fmt.Sprintf("CheckFile of %v", d)))
@@ -167,60 +167,117 @@ func TestSprintf(t *testing.T) {
 	f := tsfio.Sprintf[tsfio.Filename]("%v%v%v", os.TempDir(), string(os.PathSeparator), testcase)
 	// If d does not equal swant, the test fails
 	if tsfio.Directory(swant) != d {
-		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{
-			X: swant,
-			Y: string(d),
+		t.Error(tserr.EqualStr(&tserr.EqualStrArgs{
+			Var:    "d",
+			Want:   swant,
+			Actual: string(d),
 		}))
 	}
 	// If f does not equal swant, the test fails
 	if tsfio.Filename(swant) != f {
-		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{
-			X: swant,
-			Y: string(f),
+		t.Error(tserr.EqualStr(&tserr.EqualStrArgs{
+			Var:    "f",
+			Want:   swant,
+			Actual: string(f),
 		}))
 	}
 }
 
+// TestEmptyJoin tests Path to return an error if d and f are empty. The test fails if the returned path is not empty or the error is nil.
 func TestEmptyJoin(t *testing.T) {
+	// Retrieve p and e from Path
 	p, e := tsfio.Path("", "")
+	// The test fails if the returned path is not empty or the error is nil
 	if p != "" || e == nil {
 		t.Error(tserr.NilFailed("Path"))
 	}
 }
 
+// TestBlockedDirJoin tests Path to return an empty path and an error in case d equals a blocked directory. The test
+// fails if Path does not return an empty path or the error is nil.
 func TestBlockedDirJoin(t *testing.T) {
-	if len(tsfio.InvalDir) == 0 {
+	// The test fails if InvalDir is empty
+	if len(tsfio.InvalDir()) == 0 {
 		t.Fatal(tserr.NilPtr())
 	}
-	d := tsfio.InvalDir[0]
+	// Retrieve first blocked directory in d
+	d := tsfio.InvalDir()[0]
+	// Retrieve test filename in f
 	f := testfile
+	// Retrieve p from path with blocked directory d and test filename f
 	p, e := tsfio.Path(d, f)
+	// The test fails if Path does not return an empty path or the is nil
 	if p != "" || e == nil {
 		t.Error(tserr.NilFailed("Path"))
 	}
 }
 
+// TestBlockedFileJoin tests Path to return an empty path and an error in case f equals a blocked filename. The test
+// fails if Path does not return an empty path or the error is nil.
 func TestBlockedFileJoin(t *testing.T) {
-	if len(tsfio.InvalFile) == 0 {
+	// The test fails if InvalFile is empty
+	if len(tsfio.InvalFile()) == 0 {
 		t.Fatal(tserr.NilPtr())
 	}
+	// Retrieve the test directory name in d
 	d := testdir
-	f := tsfio.InvalFile[0]
+	// Retrieve first blocked filename in f
+	f := tsfio.InvalFile()[0]
+	// Retrieve p from Path with test directory d and blocked filename f
 	p, e := tsfio.Path(d, f)
+	// The test fails if Path does not return an empty path or the is nil
 	if p != "" || e == nil {
 		t.Error(tserr.NilFailed("Path"))
 	}
 }
 
+// TestJoin tests Path to return the joined directory d and filename f. The test fails if Path returns
+// an error or if Path does not match the expected result.
 func TestJoin(t *testing.T) {
+	// Retrieve test directory name in d
 	d := testdir
+	// Retrieve test filename in f
 	f := testfile
+	// Retrieve p from Path
 	p, e := tsfio.Path(d, f)
+	// The test fails if Path returns an error
 	if e != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "Path", Fn: fmt.Sprintf("%v,%v", d, f), Err: e}))
 	}
+	// Retrieve expected result from filepath.Join
 	r := tsfio.Filename(filepath.Join(string(d), string(f)))
+	// The test fails if the result of Path in p does not equal the expected result
 	if p != r {
-		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(p), Y: string(r)}))
+		t.Error(tserr.EqualStr(&tserr.EqualStrArgs{Var: "p", Actual: string(p), Want: string(r)}))
+	}
+}
+
+// TestInvalDir tests InvalDir to return copies of the array of blocked directories. It retrieves two copies. One copy of the array
+// is changed. The test fails if both copies are equal, if only one copy is changed.
+func TestInvalDir(t *testing.T) {
+	// Retrieve a copy of blocked directories from InvalDir
+	d1 := tsfio.InvalDir()
+	// Retrieve a copy of blocked directories from InvalDir
+	d2 := tsfio.InvalDir()
+	// Change the first copy
+	d1[0] = testdir
+	// The test fails if both copies are equal
+	if d1 == d2 {
+		t.Error(tserr.NotEqual(&tserr.NotEqualArgs{X: "d1", Y: "d2"}))
+	}
+}
+
+// TestInvalFile tests InvalFIle to return copies of the array of blocked filenames. It retrieves two copies. One copy of the array
+// is changed. The test fails if both copies are equal, if only one copy is changed.
+func TestInvalFile(t *testing.T) {
+	// Retrieve a copy of blocked directories from InvalFile
+	f1 := tsfio.InvalFile()
+	// Retrieve a copy of blocked directories from InvalFile
+	f2 := tsfio.InvalFile()
+	// Change the first copy
+	f1[0] = testfile
+	// The test fails if both copies are equal
+	if f1 == f2 {
+		t.Error(tserr.NotEqual(&tserr.NotEqualArgs{X: "f1", Y: "f2"}))
 	}
 }

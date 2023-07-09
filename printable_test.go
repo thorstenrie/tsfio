@@ -118,7 +118,7 @@ func TestRuneToPrintableEmpty(t *testing.T) {
 	s := tsfio.RuneToPrintable(r)
 	// The test fails if the retrieved string s is non-empty
 	if s != "" {
-		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: "", Y: s}))
+		t.Error(tserr.EqualStr(&tserr.EqualStrArgs{Var: "s", Want: "", Actual: s}))
 	}
 }
 
@@ -129,7 +129,7 @@ func TestRuneToPrintableP(t *testing.T) {
 	s := tsfio.RuneToPrintable(testRP)
 	// The test fails, if s does not equal the printable rune as string
 	if s != string(testRP) {
-		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(testRP), Y: s}))
+		t.Error(tserr.EqualStr(&tserr.EqualStrArgs{Var: "s", Want: string(testRP), Actual: s}))
 	}
 }
 
@@ -140,6 +140,6 @@ func TestRuneToPrintableNp(t *testing.T) {
 	s := tsfio.RuneToPrintable(testRNp)
 	// The test fails, if s is a non-empty string
 	if s != "" {
-		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: "", Y: s}))
+		t.Error(tserr.EqualStr(&tserr.EqualStrArgs{Var: "s", Want: "", Actual: s}))
 	}
 }

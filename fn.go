@@ -91,7 +91,7 @@ func checkInval[T Fio](f T) error {
 	// Retrieve the shortest path name of f
 	fc := filepath.Clean(string(f))
 	// Iterate i over blocked filenames
-	for _, i := range InvalFile {
+	for _, i := range InvalFile() {
 		// Retrieve the shortest path name of i
 		ic := filepath.Clean(string(i))
 		// If the blocked filename and f match, then return an error
@@ -100,7 +100,7 @@ func checkInval[T Fio](f T) error {
 		}
 	}
 	// Iterate i over blocked directories
-	for _, i := range InvalDir {
+	for _, i := range InvalDir() {
 		// Retrieve the shortest path name of i
 		ic := filepath.Clean(string(i))
 		// If f matches the blocked directory or one of its parents, then return an error

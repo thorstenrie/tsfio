@@ -219,7 +219,7 @@ func TestWriteStr(t *testing.T) {
 	}
 	// If actual b does not match expected seq, the test fails
 	if string(b) != seq {
-		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: seq}))
+		t.Error(tserr.EqualStr(&tserr.EqualStrArgs{Var: string(fn), Actual: string(b), Want: seq}))
 	}
 }
 
@@ -251,7 +251,7 @@ func TestWriteSingleStr(t *testing.T) {
 	}
 	// If actual b does not match expected seq, the test fails
 	if string(b) != testcase {
-		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: testcase}))
+		t.Error(tserr.EqualStr(&tserr.EqualStrArgs{Var: string(fn), Actual: string(b), Want: testcase}))
 	}
 }
 
@@ -370,7 +370,7 @@ func TestReadFile(t *testing.T) {
 	}
 	// If b does not match testcase, the test fails
 	if string(b) != testcase {
-		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: testcase}))
+		t.Error(tserr.EqualStr(&tserr.EqualStrArgs{Var: string(fn), Actual: string(b), Want: testcase}))
 	}
 }
 
@@ -497,7 +497,7 @@ func TestAppendFile(t *testing.T) {
 	}
 	// If b does not match the expected string, the test fails
 	if string(b) != testcase+testcase {
-		t.Error(tserr.NotEqualStr(&tserr.NotEqualStrArgs{X: string(b), Y: testcase + testcase}))
+		t.Error(tserr.EqualStr(&tserr.EqualStrArgs{Var: string(fn[0]), Actual: string(b), Want: testcase + testcase}))
 	}
 }
 

@@ -3,15 +3,80 @@
 // that can be found in the LICENSE file.
 package tsfio
 
-var (
-	goldenDir      Directory = "testdata/"
-	goldenFileType string    = ".golden"
+// Import package tserr
+import "github.com/thorstenrie/tserr" // tserr
+
+// Default directory and file type of golden files
+const (
+	goldenDir      Directory = "testdata/" // Default golden files directory
+	goldenFileType string    = ".golden"   // Default golden file type
 )
 
-func goldenPath(tc string) Filename {
-	return Filename(goldenDir) + Filename(tc+goldenFileType)
+// A Testcase contains the name of a testcase and the corresponding data of the testcase.
+// The data can be reference data or test data.
+type Testcase struct {
+	Name string // Name of the testcase
+	Data string // Data of the testcase
 }
 
-func SetGoldenDir(dir Directory) error {
+// GoldenFilePath returns the path of the test data golden file for the provided name of a testcase.
+// The golden files are stored in the default golden files directory and have the default
+// golden file type.
+func GoldenFilePath(name string) (Filename, error) {
+	return Path(goldenDir, Filename(name+goldenFileType))
+}
+
+// CreateGoldenFile creates a golden file provided by the testcase name. The data in the testcase is written to
+// the golden file. The golden file is stored in the default golden files directory and has the default
+// golden file type.
+func CreateGoldenFile(tc *Testcase) error {
+	// Return an error if tc is nil
+	if tc == nil {
+		return tserr.NilPtr()
+	}
+	if e := CreateDir(goldenDir); e != nil {
+		return tserr.Op(&tserr.OpArgs{Op: "CreateDir", Fn: string(goldenDir), Err: e})
+	}
+	// Retrieve golden file path for testcase name
+	fn, e := GoldenFilePath(tc.Name)
+	// Return an error if goldenPath fails
+	if e != nil {
+		return tserr.Op(&tserr.OpArgs{Op: "goldenPath", Fn: tc.Name, Err: e})
+	}
+	// Write the data from the testcase to the golden file
+	e = WriteSingleStr(fn, tc.Data)
+	// Return an error if WriteSingleStr fails
+	if e != nil {
+		return tserr.Op(&tserr.OpArgs{Op: "WriteSingleStr", Fn: string(fn), Err: e})
+	}
+	// Return nil
+	return nil
+}
+
+// EvalGoldenFile evaluates the testcase if it equals the test data from the golden file provided by the testcase name.
+// It returns an error if the testcase data does not equal the contents of the golden file. The golden file must reside in the default golden files directory
+// with the default golden file type.
+func EvalGoldenFile(tc *Testcase) error {
+	// Return an error if tc is nil
+	if tc == nil {
+		return tserr.NilPtr()
+	}
+	// Retrieve golden file path for testcase name
+	fn, e := GoldenFilePath(tc.Name)
+	// Return an error if goldenPath fails
+	if e != nil {
+		return tserr.Op(&tserr.OpArgs{Op: "goldenPath", Fn: tc.Name, Err: e})
+	}
+	// Retrieve the reference data from golden file provided by the testcase name
+	ref, e := ReadFile(fn)
+	// Return an error if ReadFile fails
+	if e != nil {
+		return tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: e})
+	}
+	// Return an error if the testcase data does not equal the contents of the golden file
+	if tc.Data != string(ref) {
+		return tserr.EqualStr(&tserr.EqualStrArgs{Var: tc.Name, Actual: tc.Data, Want: string(ref)})
+	}
+	// Return nil
 	return nil
 }
