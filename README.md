@@ -85,6 +85,14 @@ func IsPrintable(a []string) (bool, error)
 func RuneToPrintable(r rune) string
 ```
 
+With golden file functions, golden files can be created and test cases evaluated
+
+```
+func GoldenFilePath(name string) (Filename, error)
+func CreateGoldenFile(tc *Testcase) error
+func EvalGoldenFile(tc *Testcase) error
+```
+
 ## Example
 
 ```
@@ -133,6 +141,18 @@ func main() {
 	c, _ = tsfio.ReadFile(fn1)
 	fmt.Println(string(c))
 }
+```
+[Go Playground](https://go.dev/play/p/wkR4CwxZ-W9)
+
+Output
+```
+false
+true
+foofoo
+foofoofoo
+9
+foo
+
 ```
 
 ## Links
