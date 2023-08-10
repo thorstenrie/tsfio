@@ -16,6 +16,15 @@
 //
 // If an API call is not successful, a tserr error in JSON format is returned.
 //
+// With Printable functions, non-printable runes can be removed from strings and runes.
+// With golden file functions, golden files can be created and test cases evaluated.
+// Golden files can be used in unit tests. The expected output is stored in a golden file.
+// The actual output data will be compared with the golden file. The test fails if there
+// is a difference in actual output and golden file. With normalization functions, new lines
+// in byte slices or strings are normalized to the Unix representation of a new line as
+// line feed LF (0x0A). Therefore, Windows new lines CR LF (0x0D 0x0A) are replaced by Unix
+// new lines LF (0x0A). Also, Mac new lines CR (0x0D) are replaced by Unix new lines LF (0x0A).
+//
 // Copyright (c) 2023 thorstenrie.
 // All Rights Reserved. Use is governed with GNU Affero General Public Licence v3.0
 // that can be found in the LICENSE file.

@@ -42,27 +42,27 @@ If an API call is not successful, a [tserr](https://github.com/thorstenrie/tserr
 
 In the Go app, the package is imported with
 
-```
+```go
 import "github.com/thorstenrie/tsfio"
 ```
 
 A Filename is the name of a regular file and may contain its path. A Directory is the name of a directory and may contain its path
 
-```
+```go
 type Filename string
 type Directory string
 ```
 
 CheckFile performs checks on Filename f and CheckDir performs checks on Directory d
 
-```
+```go
 func CheckFile(f Filename) error
 func CheckDir(d Directory) error
 ```
 
 All external functions contain a CheckFile or CheckDir call at the beginning.
 
-```
+```go
 func OpenFile(fn Filename) (*os.File, error)
 func CloseFile(f *os.File) error
 func WriteStr(fn Filename, s string) error
@@ -79,23 +79,30 @@ func FileSize(fn Filename) (int64, error)
 
 With Printable functions, non-printable runes can be removed from strings and runes
 
-```
+```go
 func Printable(a string) string
 func IsPrintable(a []string) (bool, error)
 func RuneToPrintable(r rune) string
 ```
 
-With golden file functions, golden files can be created and test cases evaluated. Golden files can be used in unit tests. The expected output is stored in a golden file. The actual output data will be compared with the golden file. The test faisl if there is a difference in actual output and golden file.
+With golden file functions, golden files can be created and test cases evaluated. Golden files can be used in unit tests. The expected output is stored in a golden file. The actual output data will be compared with the golden file. The test fails if there is a difference in actual output and golden file.
 
-```
+```go
 func GoldenFilePath(name string) (Filename, error)
 func CreateGoldenFile(tc *Testcase) error
 func EvalGoldenFile(tc *Testcase) error
 ```
 
+With normalization functions, new lines in byte slices or strings are normalized to the Unix representation of a new line as line feed LF (0x0A). Therefore, Windows new lines CR LF (0x0D 0x0A) are replaced by Unix new lines LF (0x0A). Also, Mac new lines CR (0x0D) are replaced by Unix new lines LF (0x0A).
+
+```go
+func NormNewlinesBytes(i []byte) ([]byte, error)
+func NormNewlinesStr(i string) string
+```
+
 ## Example
 
-```
+```go
 package main
 
 import (

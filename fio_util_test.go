@@ -15,13 +15,15 @@ import (
 
 // The testcases use these tokens
 const (
-	testprefix string          = "tsfio_*"       // mostly used as prefix for temporary files or directories
-	testcase   string          = "test1234"      // test string
-	testcaseNp string          = testcase + "\n" // test string with a non-printable rune
-	testfile   tsfio.Filename  = "test1234"      // test Filename
-	testdir    tsfio.Directory = "test/"         // test Directory
-	testRP     rune            = 'ú'             // Test printable rune
-	testRNp    rune            = '\u001F'        // Test non-printable rune
+	testprefix    string          = "tsfio_*"         // mostly used as prefix for temporary files or directories
+	testcase      string          = "test1234"        // test string
+	testcase_unix string          = testcase + "\n"   // test string with a non-printable rune for a new line
+	testcase_win  string          = testcase + "\r\n" // test string with a non-printable rune for a new line in Windows
+	testcase_mac  string          = testcase + "\r"   // test string with a non-printable rune for a new line in Mac
+	testfile      tsfio.Filename  = "test1234"        // test Filename
+	testdir       tsfio.Directory = "test/"           // test Directory
+	testRP        rune            = 'ú'               // Test printable rune
+	testRNp       rune            = '\u001F'          // Test non-printable rune
 )
 
 // tmpDir creates a new temporary directory in the default directory for temporary files
