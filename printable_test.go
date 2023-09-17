@@ -26,7 +26,7 @@ func TestPrintable1(t *testing.T) {
 // The test fails, if the retrieved string does not equal the provided string without the non-printable rune.
 func TestPrintable2(t *testing.T) {
 	// Retrieve the return string from Printable for a test string with one non-printable rune
-	str := tsfio.Printable(testcaseNp)
+	str := tsfio.Printable(testcase_unix)
 	// Return an error if the returned string does not equal the provided string without the non-printable rune
 	if str != testcase {
 		t.Error(tserr.Return(&tserr.ReturnArgs{Op: "Printable", Actual: str, Want: testcase}))
@@ -54,7 +54,7 @@ func TestIsPrintable1(t *testing.T) {
 // a non-printable rune. The test fails, if IsPrintable returns an error or true.
 func TestIsPrintable2(t *testing.T) {
 	// Retrieve a slice of two strings with one string containing a non-printable rune
-	str := []string{testcaseNp, testcase}
+	str := []string{testcase_unix, testcase}
 	// Retrieve return values of IsPrintable
 	b, e := tsfio.IsPrintable(str)
 	// The test fails, if IsPrintable returns an error

@@ -73,8 +73,12 @@ func EvalGoldenFile(tc *Testcase) error {
 	if e != nil {
 		return tserr.Op(&tserr.OpArgs{Op: "ReadFile", Fn: string(fn), Err: e})
 	}
+	// Normalize new lines in ref
+	refn := NormNewlinesStr(string(ref))
+	// Normalize new lines in test data
+	test := NormNewlinesStr(tc.Data)
 	// Return an error if the testcase data does not equal the contents of the golden file
-	if tc.Data != string(ref) {
+	if test != refn {
 		return tserr.EqualStr(&tserr.EqualStrArgs{Var: tc.Name, Actual: tc.Data, Want: string(ref)})
 	}
 	// Return nil
