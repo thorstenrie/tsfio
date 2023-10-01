@@ -32,10 +32,11 @@ package tsfio
 
 // Import standard library packages and tserr
 import (
-	"fmt"   // fmt
-	"io/fs" // ios/fs
-	"os"    // os
-	"time"  // time
+	"fmt"           // fmt
+	"io/fs"         // fs
+	"os"            // os
+	"path/filepath" // filepath
+	"time"          // time
 
 	"github.com/thorstenrie/tserr" // tserr
 )
@@ -50,16 +51,31 @@ const (
 	dperm fs.FileMode = 0755
 )
 
-// Note: All external functions must contain a CheckFile or CheckDir call at the beginning.
+// Note: All external file input output functions must contain a CheckFile or CheckDir call at the beginning.
 // This can't be tested, because a failed test could break the testing environment.
 
 // OpenFile opens the named file fn with default flags and permission bits. If the file does
-// not exist, it is created. If opened successful, the file is returned and can be used for
+// not exist, it is created. If the directory to the file does not exist, the file will
+// not be created and OpenFile returns an error.
+// If opened successfully, the file is returned and can be used for
 // file input output and error is nil.
 func OpenFile(fn Filename) (*os.File, error) {
 	// Return nil and error in case fn contains a blocked directory or filename
 	if e := CheckFile(fn); e != nil {
 		return nil, tserr.Check(&tserr.CheckArgs{F: string(fn), Err: e})
+	}
+	// Get directory of filename, if it contains a path
+	if dn := Directory(filepath.Dir(string(fn))); dn != "" {
+		// Check if directory exists
+		b, err := ExistsDir(dn)
+		// Return nil and an error if ExistsDir fails
+		if err != nil {
+			return nil, tserr.Op(&tserr.OpArgs{Op: "ExistsDir", Fn: string(dn), Err: err})
+		}
+		// Return nil and an error if the directory does not exist
+		if !b {
+			return nil, tserr.NotExistent("directory " + string(dn))
+		}
 	}
 	// Open file with default flags and permission bits
 	f, err := os.OpenFile(string(fn), flags, fperm)
@@ -248,10 +264,28 @@ func AppendFile(a *Append) error {
 // ExistsFile returns true if file fn exists, returns false otherwise. It returns false and an error
 // if there is any. If fn is a directory, ExistsFile returns false and an error.
 func ExistsFile(fn Filename) (bool, error) {
-	// Return an error in case fn contains a blocked directory or filename
-	if err := CheckFile(fn); err != nil {
-		return false, tserr.Check(&tserr.CheckArgs{F: string(fn), Err: err})
+	// Return an error in case fn is empty
+	if fn == "" {
+		return false, tserr.Empty("filename")
 	}
+	// Return exists on fn
+	return exists[Filename](fn)
+}
+
+// ExistsDir returns true if directory dn exists, returns false otherwise. It returns false and an error
+// if there is any. If dn is a file, ExistsDir returns false and an error.
+func ExistsDir(dn Directory) (bool, error) {
+	// Return an error in case dn is empty
+	if dn == "" {
+		return false, tserr.Empty("directory name")
+	}
+	// Return exists on dn
+	return exists[Directory](dn)
+}
+
+// exists retrieves FileInfo of fn using os.Stat. If os.Stat is successful, it returns true. If os.Stat returns an error reporting fn
+// does not exist, it returns false. It returns false and an error for any other error of os.Stat.
+func exists[T Fio](fn T) (bool, error) {
 	// Retrieve FileInfo of fn
 	_, err := os.Stat(string(fn))
 	// If Stat is successful return true and error as nil

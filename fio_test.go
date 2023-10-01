@@ -5,10 +5,11 @@ package tsfio_test
 
 // Import standard library packages as well as tserr and tsfio
 import (
-	"fmt"     // fmt
-	"os"      // os
-	"testing" // testing
-	"time"    // time
+	"fmt"           // fmt
+	"os"            // os
+	"path/filepath" // filepath
+	"testing"       // testing
+	"time"          // time
 
 	"github.com/thorstenrie/tserr" // tserr
 	"github.com/thorstenrie/tsfio" // tsfio
@@ -26,6 +27,32 @@ func TestOpenFile1(t *testing.T) {
 // if *os.File is nil, the test fails.
 func TestOpenFile2(t *testing.T) {
 	testOpenFile(t, true)
+}
+
+// TestOpenFile3 tests OpenFile for a provided file name in a not existing directory.
+// The test fails if OpenFile does not return an error.
+func TestOpenFile3(t *testing.T) {
+	// Retrieve a temporary directory
+	dn := tmpDir(t)
+	// Remove the temporary directory
+	rm(t, dn)
+	// Retrieve a temporary file
+	fn := tmpFile(t)
+	// Remove the temporary file
+	rm(t, fn)
+	// Create a file name with the temporary directory and temporary file name
+	fn = tsfio.Filename(filepath.Base(string(fn)))
+	n, e := tsfio.Path(dn, fn)
+	// The test fails if Path returns an error
+	if e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "Path", Fn: string(dn) + string(fn), Err: e}))
+	}
+	// Try to open the created file name
+	_, e = tsfio.OpenFile(n)
+	// The test fails if OpenFile does not return an error
+	if e == nil {
+		t.Error(tserr.NilFailed("OpenFile"))
+	}
 }
 
 // testOpenFile is called by Test functions to test OpenFile. If r is true,
@@ -512,6 +539,17 @@ func TestExistsFileEmpty(t *testing.T) {
 	}
 }
 
+// TestExistsDirEmpty tests ExistsDir to return an error for an empty string as directory.
+// If ExistsDir returns the error to be nil, the test fails.
+func TestExistsDirEmpty(t *testing.T) {
+	// Call ExistsFile for an empty string as filename
+	_, e := tsfio.ExistsDir("")
+	// If ExistsFile returns the error to be nil, the test fails
+	if e == nil {
+		t.Error(tserr.NilFailed("ExistsFile"))
+	}
+}
+
 // TestExistsFile1 tests ExistsFile for a non-existing file.
 // If ExistsFile returns an error or if ExistsFile returns true,
 // the test fails.
@@ -524,6 +562,20 @@ func TestExistsFile1(t *testing.T) {
 // the test fails.
 func TestExistsFile2(t *testing.T) {
 	testExistsFile(t, false)
+}
+
+// TestExistsDir1 tests ExistsDir for a non-existing directory.
+// If ExistsDir returns an error or if ExistsDir returns true,
+// the test fails.
+func TestExistsDir1(t *testing.T) {
+	testExistsDir(t, true)
+}
+
+// TestExistsDir2 tests ExistsDir for an existing temporary directory.
+// If ExistsDir returns an error or if ExistsDir returns false,
+// the test fails.
+func TestExistsDir2(t *testing.T) {
+	testExistsDir(t, false)
 }
 
 // testExistsFile is called by Test functions to test ExistsFile. If r is true,
@@ -564,6 +616,47 @@ func testExistsFile(t *testing.T, r bool) {
 	// Remove fn, if r is true
 	if !r {
 		rm(t, fn)
+	}
+}
+
+// testExistsDir is called by Test functions to test ExistsDir. If r is true,
+// ExistsDir is tested for a non-existing, removed file. If r is false,
+// ExistsDir is tested for an existing temporary file. If ExistsDir returns
+// an error or if the actual result of ExistsDir does not match the expected
+// result, the test fails.
+func testExistsDir(t *testing.T, r bool) {
+	// Panic if t is nil
+	if t == nil {
+		panic("nil pointer")
+	}
+	// Create a temporary directory dn
+	dn := tmpDir(t)
+	// Remove dn, if r is true
+	if r {
+		rm(t, dn)
+	}
+	// Call ExistsDir for fn
+	b, e := tsfio.ExistsDir(dn)
+	// If ExistsDir returns an error, the test fails
+	if e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{
+			Op:  "ExistsFile",
+			Fn:  string(dn),
+			Err: e,
+		}))
+	}
+	// If the actual result of ExistsDir does not match the expected result,
+	// the test fails
+	if b == r {
+		t.Error(tserr.Return(&tserr.ReturnArgs{
+			Op:     "ExistsDir",
+			Actual: fmt.Sprintf("%t", b),
+			Want:   fmt.Sprintf("%t", !b),
+		}))
+	}
+	// Remove fn, if r is true
+	if !r {
+		rm(t, dn)
 	}
 }
 

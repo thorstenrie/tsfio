@@ -20,15 +20,15 @@ type Testcase struct {
 }
 
 // GoldenFilePath returns the path of the test data golden file for the provided name of a testcase.
-// The golden files are stored in the default golden files directory and have the default
-// golden file type.
+// The golden files are stored in the default golden files directory testdata/ and have the default
+// golden file type .golden.
 func GoldenFilePath(name string) (Filename, error) {
 	return Path(goldenDir, Filename(name+goldenFileType))
 }
 
 // CreateGoldenFile creates a golden file provided by the testcase name. The data in the testcase is written to
-// the golden file. The golden file is stored in the default golden files directory and has the default
-// golden file type.
+// the golden file. The golden file is stored in the default golden files directory testdata/ and has the default
+// golden file type .golden.
 func CreateGoldenFile(tc *Testcase) error {
 	// Return an error if tc is nil
 	if tc == nil {
@@ -55,7 +55,7 @@ func CreateGoldenFile(tc *Testcase) error {
 
 // EvalGoldenFile evaluates the testcase if it equals the test data from the golden file provided by the testcase name.
 // It returns an error if the testcase data does not equal the contents of the golden file. The golden file must reside in the default golden files directory
-// with the default golden file type.
+// testdata/ with the default golden file type .golden.
 func EvalGoldenFile(tc *Testcase) error {
 	// Return an error if tc is nil
 	if tc == nil {
