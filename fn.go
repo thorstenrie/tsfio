@@ -74,7 +74,7 @@ func checkWrapper[T Fio](f T, dir bool) error {
 			return nil
 		}
 		// Return an error otherwise
-		return tserr.TypeNotMatching(&tserr.TypeNotMatchingArgs{Act: string(f), Want: w})
+		return tserr.TypeNotMatching(&tserr.TypeNotMatchingArgs{Actual: string(f), Want: w})
 	}
 	// If Stat returns an error reporting f does not exist, return nil
 	if os.IsNotExist(err) {
